@@ -1,0 +1,9 @@
+language: java
+jdk:
+  - oraclejdk8
+notifications:
+  email:
+    recipients:
+      - daniel.fuevesi@gmail.com
+    on_failure: always
+    on_success: change
