@@ -1,5 +1,7 @@
 package at.ac.tuwien.otl.evrptw
 
+import at.ac.tuwien.otl.evrptw.dto.InstanceLoader
+
 /**
  * <h4>About this class</h4>
  *
@@ -12,9 +14,15 @@ package at.ac.tuwien.otl.evrptw
 class Main {
 
     companion object {
+
+        private val testInstances = listOf("c101C10","r102C10","rc201C10")
+
         @JvmStatic
         fun main(args: Array<String>) {
             println("Hello World")
+            val instanceLoader = InstanceLoader()
+            val result  = instanceLoader.load(testInstances[0])
+            println(result.toString())
         }
     }
 }
