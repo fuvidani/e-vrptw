@@ -80,19 +80,19 @@ public class EVRPTWInstance {
         return rechargingStations.get(n.id - 1);
     }
 
-    Customer getCustomer(String name) {
+    public Customer getCustomer(String name) {
         return customerMap.get(name);
     }
 
-    Customer getCustomer(Node n) {
+    public Customer getCustomer(Node n) {
         return customers.get(n.id - (rechargingStations.size() + 1));
     }
 
-    Node getDepot() {
+    public Node getDepot() {
         return depot;
     }
 
-    List<Customer> getCustomers() {
+    public List<Customer> getCustomers() {
         return customers;
     }
 
@@ -164,7 +164,7 @@ public class EVRPTWInstance {
             return rechargingStations.get(node.id - 1).timeWindow;
     }
 
-    double getServicetime(Node node) {
+    double getServiceTime(Node node) {
         if(!isMandatory(node)) return 0;
         return customers.get((int) node.id - (rechargingStations.size() + 1)).serviceTime;
     }
@@ -174,21 +174,28 @@ public class EVRPTWInstance {
         return rechargingStations.get(node.id - 1).rechargingRate;
     }
 
-    static class Node {
+    public static class Node {
         final int id;
 
         Node(int id) {
             this.id = id;
         }
 
-        static class Location {
+        public static class Location {
             final double x, y;
 
-            private Location(double x, double y) {
+            public Location(double x, double y) {
                 this.x = x;
                 this.y = y;
             }
 
+            public double getX() {
+                return x;
+            }
+
+            public double getY() {
+                return y;
+            }
         }
 
         static class TimeWindow {
@@ -197,6 +204,14 @@ public class EVRPTWInstance {
             private TimeWindow(double start, double end) {
                 this.start = start;
                 this.end = end;
+            }
+
+            public double getStart() {
+                return start;
+            }
+
+            public double getEnd() {
+                return end;
             }
         }
     }
@@ -218,6 +233,26 @@ public class EVRPTWInstance {
             this.serviceTime = serviceTime;
         }
 
+        public String getName() {
+            return name;
+        }
+
+        public Location getLocation() {
+            return location;
+        }
+
+        public double getDemand() {
+            return demand;
+        }
+
+        public TimeWindow getTimeWindow() {
+            return timeWindow;
+        }
+
+        public double getServiceTime() {
+            return serviceTime;
+        }
+
         @Override
         public String toString() {
             return name;
@@ -234,6 +269,18 @@ public class EVRPTWInstance {
             this.name = name;
             this.location = new Location(x, y);
             this.timeWindow = new TimeWindow(start, end);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Location getLocation() {
+            return location;
+        }
+
+        public TimeWindow getTimeWindow() {
+            return timeWindow;
         }
 
         @Override

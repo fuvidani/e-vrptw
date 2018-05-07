@@ -1,6 +1,8 @@
 package at.ac.tuwien.otl.evrptw
 
+import at.ac.tuwien.otl.evrptw.construction.ConstructionHeuristic
 import at.ac.tuwien.otl.evrptw.dto.InstanceLoader
+import at.ac.tuwien.otl.evrptw.util.EVRPTWSolver
 
 /**
  * <h4>About this class</h4>
@@ -16,13 +18,16 @@ class Main {
     companion object {
 
         private val testInstances = listOf("c101C10","r102C10","rc201C10")
+        private val constructionHeuristic = ConstructionHeuristic()
+        private val solver = EVRPTWSolver()
 
         @JvmStatic
         fun main(args: Array<String>) {
             println("Hello World")
             val instanceLoader = InstanceLoader()
-            val result  = instanceLoader.load(testInstances[0])
-            println(result.toString())
+            val instance  = instanceLoader.load(testInstances[0])
+            val solution = solver.solve(instance, constructionHeuristic)
+            println(solution)
         }
     }
 }
