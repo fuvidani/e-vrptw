@@ -15,7 +15,7 @@ import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
  */
 class EVRPTWSolver {
 
-    fun solve(instance: EVRPTWInstance,constructionHeuristic: IConstructionHeuristic) : EVRPTWSolution {
+    fun solve(instance: EVRPTWInstance, constructionHeuristic: IConstructionHeuristic): EVRPTWSolution {
         return constructionHeuristic.generateSolution(instance)
     }
 }

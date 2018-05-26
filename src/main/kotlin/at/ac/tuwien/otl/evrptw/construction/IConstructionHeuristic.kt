@@ -14,5 +14,5 @@ import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
  */
 interface IConstructionHeuristic {
 
-    fun generateSolution(instance: EVRPTWInstance) : EVRPTWSolution
+    fun generateSolution(instance: EVRPTWInstance): EVRPTWSolution
 }

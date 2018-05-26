@@ -9,14 +9,16 @@ package at.ac.tuwien.otl.evrptw.dto
  * @version 0.1.0
  * @since 0.1.0
  */
-data class Route(private val maxCapacity:Double,
-                 private val maxBatteryCapacity: Double,
-                 private val depot: EVRPTWInstance.Depot,
-                 private var currentCapacity: Double,
-                 private var currentBatteryCapacity: Double,
-                 private val visitedNodes: MutableList<EVRPTWInstance.Node> = mutableListOf(depot)) {
+data class Route(
+    private val maxCapacity: Double,
+    private val maxBatteryCapacity: Double,
+    private val depot: EVRPTWInstance.Depot,
+    private var currentCapacity: Double,
+    private var currentBatteryCapacity: Double,
+    private val visitedNodes: MutableList<EVRPTWInstance.Node> = mutableListOf(depot)
+) {
 
-    fun addNode(node: EVRPTWInstance.Node) : Boolean {
+    fun addNode(node: EVRPTWInstance.Node): Boolean {
 
         if (!nodeViolatesConstraints(node)) {
 
@@ -25,7 +27,7 @@ data class Route(private val maxCapacity:Double,
         return false
     }
 
-    private fun nodeViolatesConstraints(node: EVRPTWInstance.Node) : Boolean {
+    private fun nodeViolatesConstraints(node: EVRPTWInstance.Node): Boolean {
         return false
     }
 }

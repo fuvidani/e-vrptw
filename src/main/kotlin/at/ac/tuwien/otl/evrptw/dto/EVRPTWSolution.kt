@@ -9,6 +9,8 @@ package at.ac.tuwien.otl.evrptw.dto
  * @version 0.1.0
  * @since 0.1.0
  */
-data class EVRPTWSolution (val instance: EVRPTWInstance,
-                           val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
-                           var cost: Double)
+data class EVRPTWSolution (
+    val instance: EVRPTWInstance,
+    val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
+    var cost: Double
+)
