@@ -3,7 +3,6 @@ package at.ac.tuwien.otl.evrptw.construction
 import com.google.ortools.constraintsolver.FirstSolutionStrategy
 import com.google.ortools.constraintsolver.RoutingModel
 import com.google.ortools.constraintsolver.RoutingSearchParameters
-import java.util.ArrayList
 import java.util.logging.Logger
 import java.util.Random
 import com.google.ortools.constraintsolver.NodeEvaluator2
@@ -17,32 +16,47 @@ import com.google.ortools.constraintsolver.NodeEvaluator2
  * @version 1.0.0
  * @since 1.0.0
  */
-class CapacitatedVehicleRoutingProblemWithTimeWindows {
+class CapacitatedVehicleRoutingProblemWithTimeWindows(
+    private val locations: List<Pair<Int, Int>>,
+    private val orderDemands: List<Int>,
+    private val orderTimeWindows: List<Pair<Int, Int>>,
+    private val orderPenalties: List<Int>,
+    private val vehicleCapacity: Int,
+    private val vehicleEndTime: List<Int>,
+    private val vehicleCostCoefficients: List<Int>,
+    private val vehicleStarts: IntArray,
+    private val vehicleEnds: IntArray) {
 
     private val logger = Logger.getLogger(CapacitatedVehicleRoutingProblemWithTimeWindows::class.java.name)
 
     // Locations representing either an order location or a vehicle route
     // start/end.
-    private val locations = ArrayList<Pair<Int, Int>>()
+    //private val locations = List<Pair<Int, Int>>()
 
     // Quantity to be picked up for each order.
-    private val orderDemands = ArrayList<Int>()
+    //private val orderDemands = List<Int>()
+
     // Time window in which each order must be performed.
-    private val orderTimeWindows = ArrayList<Pair<Int, Int>>()
+    //private val orderTimeWindows = List<Pair<Int, Int>>()
+
     // Penalty cost "paid" for dropping an order.
-    private val orderPenalties = ArrayList<Int>()
+    //private val orderPenalties = List<Int>()
 
     // Capacity of the vehicles.
-    private var vehicleCapacity = 0
+    //private var vehicleCapacity = 0
     // Latest time at which each vehicle must end its tour.
-    private val vehicleEndTime = ArrayList<Int>()
+    //private val vehicleEndTime = List<Int>()
+
     // Cost per unit of distance of each vehicle.
-    private val vehicleCostCoefficients = ArrayList<Int>()
+    //private val vehicleCostCoefficients = List<Int>()
+
     // Vehicle start and end indices. They have to be implemented as int[] due
     // to the available SWIG-ed interface.
-    private var vehicleStarts: IntArray? = null
-    private var vehicleEnds: IntArray? = null
+    //private var vehicleStarts: IntArray? = null
+    //private var vehicleEnds: IntArray? = null
     private val randomGenerator = Random(0xBEEF)
+
+
 
     init {
         System.load("${System.getProperty("user.dir")}/libs/libjniortools.jnilib")
@@ -58,8 +72,8 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
      * @param demandMax maximum quantity of a demand.
      * @param timeWindowMax maximum starting time of the order time window.
      * @param timeWindowWidth duration of the order time window.
-     * @param penaltyMin minimum pernalty cost if order is dropped.
-     * @param penaltyMax maximum pernalty cost if order is dropped.
+     * @param penaltyMin minimum penalty cost if order is dropped.
+     * @param penaltyMax maximum penalty cost if order is dropped.
      */
     fun buildOrders(
         numberOfOrders: Int,
@@ -71,7 +85,7 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
         penaltyMin: Int,
         penaltyMax: Int
     ) {
-        logger.info("Building orders.")
+        /*logger.info("Building orders.")
         for (order in 0 until numberOfOrders) {
             locations.add(
                 Pair.of(
@@ -83,7 +97,7 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
             val timeWindowStart = randomGenerator.nextInt(timeWindowMax + 1)
             orderTimeWindows.add(Pair.of(timeWindowStart, timeWindowStart + timeWindowWidth))
             orderPenalties.add(randomGenerator.nextInt(penaltyMax - penaltyMin + 1) + penaltyMin)
-        }
+        }*/
     }
 
     /**
@@ -106,7 +120,7 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
         capacity: Int,
         costCoefficientMax: Int
     ) {
-        logger.info("Building fleet.")
+        /*logger.info("Building fleet.")
         vehicleCapacity = capacity
         vehicleStarts = IntArray(numberOfVehicles)
         vehicleEnds = IntArray(numberOfVehicles)
@@ -127,7 +141,7 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
             )
             vehicleEndTime.add(endTime)
             vehicleCostCoefficients.add(randomGenerator.nextInt(costCoefficientMax) + 1)
-        }
+        }*/
     }
 
     fun solve(numberOfOrders: Int, numberOfVehicles: Int) {
@@ -139,25 +153,25 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
         val numberOfLocations = locations.size
 
         val model = RoutingModel(
-            numberOfLocations, numberOfVehicles,
-            vehicleStarts, vehicleEnds
+            numberOfLocations, numberOfVehicles,vehicleStarts, vehicleEnds
         )
 
         // Setting up dimensions
         val bigNumber = 100000
-        val manhattanCallback = object : NodeEvaluator2() {
+        val euclidianCallback = object : NodeEvaluator2() {
             override fun run(firstIndex: Int, secondIndex: Int): Long {
                 return try {
                     val firstLocation = locations[firstIndex]
                     val secondLocation = locations[secondIndex]
-                    (Math.abs(firstLocation.first - secondLocation.first) + Math.abs(firstLocation.second - secondLocation.second)).toLong()
+                    //(Math.abs(firstLocation.first - secondLocation.first) + Math.abs(firstLocation.second - secondLocation.second)).toLong()
+                    (Math.sqrt(Math.pow((firstLocation.first - secondLocation.first).toDouble(), 2.0) + Math.pow((firstLocation.second - secondLocation.second).toDouble(), 2.0))).toLong()
                 } catch (throwable: Throwable) {
                     logger.warning(throwable.message)
                     0
                 }
             }
         }
-        model.addDimension(manhattanCallback, bigNumber.toLong(), bigNumber.toLong(), false, "time")
+        model.addDimension(euclidianCallback, bigNumber.toLong(), bigNumber.toLong(), false, "time")
         val demandCallback = object : NodeEvaluator2() {
             override fun run(firstIndex: Int, secondIndex: Int): Long {
                 return try {
@@ -180,9 +194,10 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
                     return try {
                         val firstLocation = locations[firstIndex]
                         val secondLocation = locations[secondIndex]
-                        (costCoefficient * ((Math.abs(firstLocation.first - secondLocation.first) + Math.abs(
+                        /*(costCoefficient * ((Math.abs(firstLocation.first - secondLocation.first) + Math.abs(
                             firstLocation.second - secondLocation.second
-                        )))).toLong()
+                        )))).toLong()*/
+                        costCoefficient * (Math.sqrt(Math.pow((firstLocation.first - secondLocation.first).toDouble(), 2.0) + Math.pow((firstLocation.second - secondLocation.second).toDouble(), 2.0))).toLong()
                     } catch (throwable: Throwable) {
                         logger.warning(throwable.message)
                         0
@@ -206,7 +221,7 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
         // Solving
         val parameters = RoutingSearchParameters.newBuilder()
             .mergeFrom(RoutingModel.defaultSearchParameters())
-            .setFirstSolutionStrategy(FirstSolutionStrategy.Value.ALL_UNPERFORMED)
+            .setFirstSolutionStrategy(FirstSolutionStrategy.Value.SAVINGS)
             .build()
 
         logger.info("Search")
@@ -251,7 +266,7 @@ class CapacitatedVehicleRoutingProblemWithTimeWindows {
     }
 }
 
-internal class Pair<out K, out V>(val first: K, val second: V) {
+class Pair<out K, out V>(val first: K, val second: V) {
     companion object {
 
         fun <K, V> of(element0: K, element1: V): Pair<K, V> {

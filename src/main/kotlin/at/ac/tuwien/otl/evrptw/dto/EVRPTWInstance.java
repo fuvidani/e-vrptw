@@ -124,7 +124,7 @@ public class EVRPTWInstance {
         return vehicleType.energyCapacity;
     }
 
-    double getVehicleEnergyConsumption() {
+    public double getVehicleEnergyConsumption() {
         return vehicleType.energyConsumption;
     }
 
@@ -198,7 +198,7 @@ public class EVRPTWInstance {
             }
         }
 
-        static class TimeWindow {
+        public static class TimeWindow {
             final double start, end;
 
             private TimeWindow(double start, double end) {

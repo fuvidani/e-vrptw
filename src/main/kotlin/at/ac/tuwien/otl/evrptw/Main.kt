@@ -2,6 +2,9 @@ package at.ac.tuwien.otl.evrptw
 
 import at.ac.tuwien.otl.evrptw.util.EVRPTWSolver
 import at.ac.tuwien.otl.evrptw.construction.CapacitatedVehicleRoutingProblemWithTimeWindows
+import at.ac.tuwien.otl.evrptw.construction.Pair
+import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
+import at.ac.tuwien.otl.evrptw.dto.InstanceLoader
 
 /**
  * <h4>About this class</h4>
@@ -23,13 +26,32 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
             println("Hello World")
-            /*val instanceLoader = InstanceLoader()
+            val instanceLoader = InstanceLoader()
             val instance  = instanceLoader.load(testInstances[0])
-            val solution = solver.solve(instance, constructionHeuristic)
-            println(solution)*/
+            //val locations : MutableList<Pair<Int, Int>> = instance.customers.map { Pair(it.location.x.toInt(),it.location.y.toInt()) }.toMutableList()
+            val numberOfVehicles = 5
+            val startLocations = IntArray(numberOfVehicles)
+            val endLocations = IntArray(numberOfVehicles)
+            for (index in 0 until numberOfVehicles) {
+                //startLocations[index] = (instance.depot as EVRPTWInstance.Depot).location.x.toInt()
+                startLocations[index] = instance.numCustomers
+                //endLocations[index] = (instance.depot as EVRPTWInstance.Depot).location.y.toInt()
+                endLocations[index] = instance.numCustomers
+            }
 
-            val problem = CapacitatedVehicleRoutingProblemWithTimeWindows()
-            val xMax = 20
+            val problem = CapacitatedVehicleRoutingProblemWithTimeWindows(
+                //listOf(Pair((instance.depot as EVRPTWInstance.Depot).location.x.toInt(),(instance.depot as EVRPTWInstance.Depot).location.y.toInt())) +
+                        instance.customers.map { Pair(it.location.x.toInt(),it.location.y.toInt()) } + listOf(Pair((instance.depot as EVRPTWInstance.Depot).location.x.toInt(),(instance.depot as EVRPTWInstance.Depot).location.y.toInt())),
+                instance.customers.map { it.demand.toInt() },
+                instance.customers.map { Pair(it.timeWindow.start.toInt(),it.timeWindow.end.toInt()) },
+                instance.customers.map { 0 },
+                200,
+                listOf(1236,1236,1236,1236,1236,1236,1236,1236,1236,1236,1236,1236),
+                instance.customers.map { instance.vehicleEnergyConsumption.toInt() },
+                startLocations,
+                endLocations
+            )
+            /*val xMax = 20
             val yMax = 20
             val demandMax = 3
             val timeWindowMax = 24 * 60
@@ -60,8 +82,8 @@ class Main {
                 endTime,
                 capacity,
                 costCoefficientMax
-            )
-            problem.solve(orders, vehicles)
+            )*/
+            problem.solve(instance.numCustomers, numberOfVehicles)
         }
     }
 }
