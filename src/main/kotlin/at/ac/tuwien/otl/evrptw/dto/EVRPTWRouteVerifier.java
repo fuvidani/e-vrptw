@@ -23,11 +23,11 @@ import java.util.Locale;
 public class EVRPTWRouteVerifier {
     private EVRPTWInstance instance;
 
-    private EVRPTWRouteVerifier(EVRPTWInstance instance) {
+    public EVRPTWRouteVerifier(EVRPTWInstance instance) {
         this.instance = instance;
     }
 
-    /*boolean verify(List<List<Node>> routes, double cost, boolean detailedMode) {
+    public boolean verify(List<List<Node>> routes, double cost, boolean detailedMode) {
         double c = 0.0;
         for(int i = 0; i < routes.size(); i++) {
             c = c + calculate(routes.get(i), i + 1, detailedMode);
@@ -44,7 +44,7 @@ public class EVRPTWRouteVerifier {
                 System.out.println("at least one route is infeasible!");
         }
         return Double.isFinite(c);
-    }*/
+    }
 
     public double calculateTotalCost(List<List<Node>> routes) {
         double c = 0.0;
@@ -54,7 +54,7 @@ public class EVRPTWRouteVerifier {
         return c;
     }
 
-    private double calculate(List<Node> route, int id, boolean detailedMode) {
+    public double calculate(List<Node> route, int id, boolean detailedMode) {
         int from = 1;
         int to = route.size() - 1;
 
@@ -149,9 +149,5 @@ public class EVRPTWRouteVerifier {
         if(infeasible)
             return Double.POSITIVE_INFINITY;
         else return distance;
-    }
-
-    static EVRPTWRouteVerifier create(EVRPTWInstance instance) {
-        return new EVRPTWRouteVerifier(instance);
     }
 }

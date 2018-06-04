@@ -64,7 +64,7 @@ public class EVRPTWInstance {
         return n.id == 0;
     }
 
-    boolean isRechargingStation(Node n) {
+    public boolean isRechargingStation(Node n) {
         return n.id > 0 && n.id < rechargingStations.size() + 1;
     }
 
@@ -116,34 +116,46 @@ public class EVRPTWInstance {
         return 12;
     }
 
-    double getVehicleCapacity() {
+    public double getVehicleCapacity() {
         return vehicleType.loadCapacity;
     }
 
-    double getVehicleEnergyCapacity() {
+    public double getVehicleEnergyCapacity() {
         return vehicleType.energyCapacity;
+    }
+
+    public Map<String, Customer> getCustomerMap() {
+        return customerMap;
+    }
+
+    public Map<String, RechargingStation> getRechargingStationMap() {
+        return rechargingStationMap;
+    }
+
+    public BEVehicleType getVehicleType() {
+        return vehicleType;
     }
 
     public double getVehicleEnergyConsumption() {
         return vehicleType.energyConsumption;
     }
 
-    private double calculateEuclidianDistance(Node n1, Node n2) {
+    public double calculateEuclidianDistance(Node n1, Node n2) {
         final Node.Location n1Loc = getLocation(n1);
         final Node.Location n2Loc = getLocation(n2);
         return Math.sqrt(Math.pow(n1Loc.x - n2Loc.x, 2)
             + Math.pow(n1Loc.y - n2Loc.y, 2));
     }
 
-    double getTravelDistance(Node n1, Node n2) {
+    public double getTravelDistance(Node n1, Node n2) {
         return calculateEuclidianDistance(n1, n2);
     }
 
-    double getTravelTime(Node n1, Node n2) {
+    public double getTravelTime(Node n1, Node n2) {
         return getTravelDistance(n1, n2);
     }
 
-    double getDemand(Node node) {
+    public double getDemand(Node node) {
         if(!isMandatory(node)) return 0;
         return customers.get((int) node.id - (rechargingStations.size() + 1)).demand;
     }
@@ -156,7 +168,7 @@ public class EVRPTWInstance {
             return rechargingStations.get(node.id - 1).location;
     }
 
-    TimeWindow getTimewindow(Node node) {
+    public TimeWindow getTimewindow(Node node) {
         if(node.id == depot.id) return depot.timeWindow;
         else if(node.id > rechargingStations.size()) return customers
             .get((int) node.id - (rechargingStations.size() + 1)).timeWindow;
@@ -164,18 +176,22 @@ public class EVRPTWInstance {
             return rechargingStations.get(node.id - 1).timeWindow;
     }
 
-    double getServiceTime(Node node) {
+    public double getServiceTime(Node node) {
         if(!isMandatory(node)) return 0;
         return customers.get((int) node.id - (rechargingStations.size() + 1)).serviceTime;
     }
 
-    double getRechargingRate(Node node) {
+    public double getRechargingRate(Node node) {
         if(!isRechargingStation(node)) return 0;
         return rechargingStations.get(node.id - 1).rechargingRate;
     }
 
     public static class Node {
         final int id;
+
+        public int getId() {
+            return id;
+        }
 
         Node(int id) {
             this.id = id;
@@ -323,8 +339,9 @@ public class EVRPTWInstance {
     public static class BEVehicleType extends VehicleType {
         final double energyCapacity, energyConsumption, loadCapacity, fixedCosts;
 
-        public BEVehicleType(int id, String name, double fuelCapacity, double fuelConsumption, double loadCapacity,
-                      double fixedCosts) {
+        BEVehicleType(int id, String name, double fuelCapacity, double fuelConsumption,
+            double loadCapacity,
+            double fixedCosts) {
             super(id, name);
             this.energyCapacity = fuelCapacity;
             this.energyConsumption = fuelConsumption;
@@ -334,6 +351,18 @@ public class EVRPTWInstance {
 
         public double getLoadCapacity() {
             return loadCapacity;
+        }
+
+        public double getEnergyCapacity() {
+            return energyCapacity;
+        }
+
+        public double getEnergyConsumption() {
+            return energyConsumption;
+        }
+
+        public double getFixedCosts() {
+            return fixedCosts;
         }
     }
 }
