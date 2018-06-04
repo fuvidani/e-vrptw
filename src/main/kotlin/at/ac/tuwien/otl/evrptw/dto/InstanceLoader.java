@@ -40,7 +40,7 @@ public class InstanceLoader {
 
     public EVRPTWInstance load(final String fileName) throws IOException {
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/instances/"+ fileName + ".txt")));
+        BufferedReader in = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/test-instances/"+ fileName + ".txt")));
         Data data = parseData(in);
 
         List<Depot> depots = new ArrayList<>();

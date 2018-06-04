@@ -88,18 +88,18 @@ data class Route(
 
         // check if enough energy to node and after to depot/recharge station
         val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(node, it) }))
-        val travelTimeFromNodeToNearestRechargeStation = travelTimeFromLastToNode + instance.getTravelTime(node, sortedList[0])
+        val travelTimeFromNodeToNearestRechargeStation = instance.getTravelTime(node, sortedList[0])
         val travelTimeFromNodeToDepot = instance.getTravelTime(node, depot)
         val additionalTravelTimeWithDepot = travelTimeFromLastToNode + travelTimeFromNodeToDepot
         val additionalTravelTimeWithNearestRechargeStation = travelTimeFromLastToNode + travelTimeFromNodeToNearestRechargeStation
 
-        if (travelTimeFromLastToNode * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
-            return true
-        }
-
-//        if (additionalTravelTimeWithDepot * instance.vehicleType.energyConsumption > currentBatteryCapacity && additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
+//        if (travelTimeFromLastToNode * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
 //            return true
 //        }
+
+        if (additionalTravelTimeWithDepot * instance.vehicleType.energyConsumption > currentBatteryCapacity && additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
+            return true
+        }
 
 
         return false

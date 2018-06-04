@@ -37,21 +37,21 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
             }
 
             if (!inserted) {
-                route.addNode(instance.depot)
-                routes.add(route.visitedNodes)
-                totalCost += route.currentTravelDistance
-                println("added route to list")
-                route = Route(instance)
-//                val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
-//
-//                if (route.addNode(instance.depot)) {
-//                    routes.add(route.visitedNodes)
-//                    totalCost += route.currentTravelDistance
-//                    println("added route to list")
-//                    route = Route(instance)
-//                } else {
-//                    route.addNode(sortedList[0])
-//                }
+//                route.addNode(instance.depot)
+//                routes.add(route.visitedNodes)
+//                totalCost += route.currentTravelDistance
+//                println("added route to list")
+//                route = Route(instance)
+                val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
+
+                if (route.addNode(instance.depot)) {
+                    routes.add(route.visitedNodes)
+                    totalCost += route.currentTravelDistance
+                    println("added route to list")
+                    route = Route(instance)
+                } else {
+                    route.addNode(sortedList[0])
+                }
             }
         }
 
