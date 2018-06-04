@@ -44,6 +44,7 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
 //                route = Route(instance)
                 val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
 
+
                 if (route.addNode(instance.depot)) {
                     routes.add(route.visitedNodes)
                     totalCost += route.currentTravelDistance
