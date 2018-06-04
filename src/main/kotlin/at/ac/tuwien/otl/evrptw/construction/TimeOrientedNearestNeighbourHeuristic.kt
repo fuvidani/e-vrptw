@@ -36,7 +36,7 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                 }
             }
 
-            if (!inserted) {
+            if (!inserted || remainingCustomers.isEmpty()) {
 //                route.addNode(instance.depot)
 //                routes.add(route.visitedNodes)
 //                totalCost += route.currentTravelDistance
