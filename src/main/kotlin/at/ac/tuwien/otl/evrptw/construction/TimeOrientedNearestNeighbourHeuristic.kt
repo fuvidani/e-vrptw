@@ -56,36 +56,91 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                 if (route.addNode(instance.depot)) {
                     routes.add(route.visitedNodes)
                     totalCost += route.currentTravelDistance
-                    println("added route to list")
+//                    println("added route to list")
                     route = Route(instance)
                 } else {
+
+                    val insertedStations = mutableListOf<EVRPTWInstance.RechargingStation>()
+                    var lastNode: EVRPTWInstance.Customer? = null
                     for (station in newSortedList) {
-                        var insertedStation = false
                         if (route.addNode(station)) {
-                            insertedStation = true
                             break
                         }
+                        lastNode = route.visitedNodes.last() as EVRPTWInstance.Customer
+                        route = Route(instance)
+                        val newStationSorted = instance.rechargingStations
+                                .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
+                        for (newStation in newStationSorted) {
+                            if (route.addNode(newStation)) {
+                                break
+                            }
+                        }
 
-                        if (!insertedStation) {
-                            val lastNode = route.visitedNodes.last()
-                            route = Route(instance)
-                            val newStationSorted = instance.rechargingStations
-                                    .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
-                            for (newStation in newStationSorted) {
-                                if (route.addNode(newStation)) {
-                                    break
+                        var insertedCustomer = route.addNode(lastNode)
+                        if (insertedCustomer) {
+                            lastNode = null
+                            insertedStations.clear()
+                            break
+                        } else {
+//                            while (!insertedCustomer) {
+//                                if (addStation(instance, lastNode!!,route)) {
+//                                    insertedCustomer = true
+//                                    lastNode = null
+//                                    insertedStations.clear()
+//                                }
+//                            }
+                        }
+
+                    }
+                    if (remainingCustomers.isEmpty()) {
+                        while (true) {
+                            if (route.addNode(instance.depot)) {
+                                routes.add(route.visitedNodes)
+                                totalCost += route.currentTravelDistance
+//                    println("added route to list")
+                                route = Route(instance)
+                                break
+                            } else {
+                                val newStationSorted = instance.rechargingStations
+                                        .sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
+                                for (newStation in newStationSorted) {
+                                    if (route.addNode(newStation)) {
+                                        break
+                                    }
                                 }
                             }
-
-                            route.addNode(lastNode)
                         }
                     }
-
                 }
             }
         }
 
         return EVRPTWSolution(instance, routes, totalCost)
+    }
+
+    private fun addStation(instance : EVRPTWInstance, lastNode: EVRPTWInstance.Node, route: Route) : Boolean {
+        val sortedList = instance.rechargingStations
+                .sortedWith(compareBy({ instance.getTravelDistance(instance.depot, it) }))
+
+        var index = -1
+        for (node: EVRPTWInstance.Node in route.visitedNodes.reversed()) {
+            if (!instance.isRechargingStation(node)) {
+                index = route.visitedNodes.indexOf(node)
+                break
+            }
+        }
+        val blacklistStations = route.visitedNodes.subList(index + 1, route.visitedNodes.size)
+        val newSortedList = sortedList.filter {
+            !blacklistStations.contains(it)
+        }
+
+        for (newStation in newSortedList) {
+            if (route.addNode(newStation)) {
+                break
+            }
+        }
+
+        return route.addNode(lastNode)
     }
 
     private fun calculateMetric(customers: List<EVRPTWInstance.Customer>, lastNode: EVRPTWInstance.Node, instance: EVRPTWInstance): Map<EVRPTWInstance.Customer, Double> {
