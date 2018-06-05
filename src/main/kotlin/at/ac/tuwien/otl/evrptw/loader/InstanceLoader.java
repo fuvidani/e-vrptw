@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.ac.tuwien.otl.evrptw.dto;
+package at.ac.tuwien.otl.evrptw.loader;
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance;
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance.BEVehicleType;

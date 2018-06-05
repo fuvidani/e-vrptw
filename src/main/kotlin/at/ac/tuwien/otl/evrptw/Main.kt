@@ -1,9 +1,8 @@
 package at.ac.tuwien.otl.evrptw
 
 import at.ac.tuwien.otl.evrptw.construction.TimeOrientedNearestNeighbourHeuristic
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWRouteVerifier
-import at.ac.tuwien.otl.evrptw.util.EVRPTWSolver
-import at.ac.tuwien.otl.evrptw.dto.InstanceLoader
+import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
+import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
 import java.util.HashSet
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 

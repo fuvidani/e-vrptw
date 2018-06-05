@@ -1,4 +1,4 @@
-package at.ac.tuwien.otl.evrptw.util
+package at.ac.tuwien.otl.evrptw
 
 import at.ac.tuwien.otl.evrptw.construction.IConstructionHeuristic
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
