@@ -24,10 +24,10 @@ data class EVRPTWSolution (
             out.write(cost.toString())
             out.newLine()
             routes.forEach {
-                for (i: Int in 0..it.size) {
-                    if (i <= it.size - 2) {
+                for (i : Int in 0..it.size) {
+                    if (i <= it.size-2) {
                         out.write(it[i].toString() + ", ")
-                    } else if (i == it.size - 1) {
+                    } else if (i == it.size-1) {
                         out.write(it[i].toString())
                     }
                 }
