@@ -23,7 +23,7 @@ class Main {
 
         private val testInstances = listOf("c101C10", "r102C10", "rc201C10")
         private val instances = listOf("c103_21", "c105_21", "c204_21", "r102_21", "r107_21", "r205_21", "r211_21", "rc101_21", "rc106_21", "rc203_21")
-        private val constructionHeuristic = TimeOrientedNearestNeighbourHeuristic()
+        private val constructionHeuristic = TimeOrientedNearestNeighbourHeuristic(false)
         private val solver = EVRPTWSolver()
 
         @JvmStatic
