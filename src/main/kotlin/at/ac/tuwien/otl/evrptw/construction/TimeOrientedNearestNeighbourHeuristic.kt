@@ -1,7 +1,6 @@
 package at.ac.tuwien.otl.evrptw.construction
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWRouteVerifier
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.Route
 
@@ -47,17 +46,17 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
 //                println("added route to list")
 //                route = Route(instance)
                 val sortedList = instance.rechargingStations
-                        .sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
-                       // .filter { it.id != route.visitedNodes.last().id }
+                    .sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
+                // .filter { it.id != route.visitedNodes.last().id }
 
                 var index = -1
-                for (node : EVRPTWInstance.Node in route.visitedNodes.reversed()) {
+                for (node: EVRPTWInstance.Node in route.visitedNodes.reversed()) {
                     if (!instance.isRechargingStation(node)) {
                         index = route.visitedNodes.indexOf(node)
                         break
                     }
                 }
-                val blacklistStations = route.visitedNodes.subList(index +1,route.visitedNodes.size)
+                val blacklistStations = route.visitedNodes.subList(index + 1, route.visitedNodes.size)
                 val newSortedList = sortedList.filter {
                     !blacklistStations.contains(it)
                 }
@@ -126,7 +125,11 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
         return EVRPTWSolution(instance, routes, totalCost)
     }
 
-    private fun calculateMetric(customers: List<EVRPTWInstance.Customer>, lastNode: EVRPTWInstance.Node, instance: EVRPTWInstance): Map<EVRPTWInstance.Customer, Double> {
+    private fun calculateMetric(
+        customers: List<EVRPTWInstance.Customer>,
+        lastNode: EVRPTWInstance.Node,
+        instance: EVRPTWInstance
+    ): Map<EVRPTWInstance.Customer, Double> {
         val map = HashMap<EVRPTWInstance.Customer, Double>()
 
         customers.forEach { customer -> map.put(customer, calculateDistance(customer, lastNode, instance)) }
@@ -134,14 +137,24 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
         return map
     }
 
-    private fun calculateDistance(customer: EVRPTWInstance.Customer, lastNode: EVRPTWInstance.Node, instance: EVRPTWInstance): Double {
+    private fun calculateDistance(
+        customer: EVRPTWInstance.Customer,
+        lastNode: EVRPTWInstance.Node,
+        instance: EVRPTWInstance
+    ): Double {
         val delta1 = 0.9
         val delta2 = 0.05
         val delta3 = 0.05
 
         val dij = instance.getTravelDistance(lastNode, customer)
-        val Tij = instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(lastNode))
-        val vij = instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(lastNode) + instance.getTravelTime(lastNode, customer))
+        val Tij =
+            instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(
+                lastNode
+            ))
+        val vij =
+            instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(
+                lastNode
+            ) + instance.getTravelTime(lastNode, customer))
 
         return delta1 * dij + delta2 * Tij + delta3 * vij
     }

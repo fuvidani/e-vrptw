@@ -320,6 +320,22 @@ public class EVRPTWInstance {
             this.rechargingRate = rechargingRate;
         }
 
+        public String getName() {
+            return name;
+        }
+
+        public Location getLocation() {
+            return location;
+        }
+
+        public TimeWindow getTimeWindow() {
+            return timeWindow;
+        }
+
+        public double getRechargingRate() {
+            return rechargingRate;
+        }
+
         @Override
         public String toString() {
             return name;

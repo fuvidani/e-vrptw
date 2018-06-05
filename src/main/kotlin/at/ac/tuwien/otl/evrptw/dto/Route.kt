@@ -10,7 +10,7 @@ package at.ac.tuwien.otl.evrptw.dto
  * @since 0.1.0
  */
 data class Route(
-        private val instance: EVRPTWInstance
+    private val instance: EVRPTWInstance
 ) {
     val depot = instance.depot
     var currentCapacity: Double = 0.0
@@ -79,7 +79,6 @@ data class Route(
             return true
         }
 
-
         // check if arrival in time window
         val travelTimeFromLastToNode = instance.getTravelTime(visitedNodes.last(), node)
         val travelTimeSum = currentTravelTime + travelTimeFromLastToNode
@@ -88,7 +87,6 @@ data class Route(
             println("time window violation")
             return true
         }
-
 
         // check if enough energy to node and after to depot/recharge station
 //        val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(node, it) }))
