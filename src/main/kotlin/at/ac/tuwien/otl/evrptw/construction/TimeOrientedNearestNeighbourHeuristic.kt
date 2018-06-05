@@ -56,28 +56,39 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                 if (route.addNode(instance.depot)) {
                     routes.add(route.visitedNodes)
                     totalCost += route.currentTravelDistance
-                    println("added route to list")
+//                    println("added route to list")
                     route = Route(instance)
                 } else {
                     for (station in newSortedList) {
-                        var insertedStation = false
                         if (route.addNode(station)) {
-                            insertedStation = true
                             break
                         }
 
-                        if (!insertedStation) {
-                            val lastNode = route.visitedNodes.last()
-                            route = Route(instance)
-                            val newStationSorted = instance.rechargingStations
-                                    .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
-                            for (newStation in newStationSorted) {
-                                if (route.addNode(newStation)) {
-                                    break
-                                }
+                        val lastNode = route.visitedNodes.last()
+                        route = Route(instance)
+                        val newStationSorted = instance.rechargingStations
+                                .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
+                        for (newStation in newStationSorted) {
+                            if (route.addNode(newStation)) {
+                                break
                             }
+                        }
 
-                            route.addNode(lastNode)
+                        if (route.addNode(lastNode)) {
+                            if (remainingCustomers.size == 0) {
+                                if (route.addNode(instance.depot)) {
+                                    routes.add(route.visitedNodes)
+                                    totalCost += route.currentTravelDistance
+//                    println("added route to list")
+                                    route = Route(instance)
+
+                                } else {
+                                    // add further stations
+                                    println("beszoptuk")
+                                }
+                                break
+                            }
+                            break
                         }
                     }
 

@@ -25,7 +25,7 @@ data class Route(
         } else if (instance.isDepot(node)) {
             return addDepotToRoute(node as EVRPTWInstance.Depot)
         } else if (!nodeViolatesConstraints(node)) {
-            println("insert node $node")
+//            println("insert node $node")
 
             val travelDistance = instance.getTravelDistance(visitedNodes.last(), node)
             currentTravelDistance += travelDistance
@@ -52,18 +52,18 @@ data class Route(
     private fun addDepotToRoute(depot: EVRPTWInstance.Depot): Boolean {
         val travelTime = instance.getTravelTime(visitedNodes.last(), depot)
         if (travelTime * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
-            println("could not add depot (battery violation)")
+//            println("could not add depot (battery violation)")
 
             return false
         }
 
         if (travelTime + currentTravelTime > instance.getTimewindow(depot).end) {
-            println("could not add depot (tour duration violation)")
+//            println("could not add depot (tour duration violation)")
 
             return false
         }
 
-        println("insert DEPOT")
+//        println("insert DEPOT")
         val travelDistance = instance.getTravelDistance(visitedNodes.last(), depot)
         currentTravelDistance += travelDistance
         currentTravelTime += travelTime
@@ -75,7 +75,7 @@ data class Route(
     private fun nodeViolatesConstraints(node: EVRPTWInstance.Node): Boolean {
         // check capacity constraint
         if (currentCapacity + instance.getDemand(node) > instance.vehicleCapacity) {
-            println("load capacity violation")
+//            println("load capacity violation")
             return true
         }
 
@@ -85,14 +85,18 @@ data class Route(
         val travelTimeSum = currentTravelTime + travelTimeFromLastToNode
 
         if (travelTimeSum > instance.getTimewindow(node).end) {
-            println("time window violation")
+//            println("time window violation")
             return true
         }
 
-        if (visitedNodes.size != 1 || (visitedNodes.size > 1 && instance.isRechargingStation(visitedNodes[1]))) {
+
+        if (visitedNodes.size == 1 || (visitedNodes.none { it is EVRPTWInstance.Customer } && visitedNodes.any { it is EVRPTWInstance.RechargingStation })) {
+
+        } else {
             if (checkIfDepotIsNotReachable(node)) return true
             if (checkIfRechargeStationIsNotReachable(node)) return true
         }
+
 
         return false
     }
@@ -101,14 +105,14 @@ data class Route(
         val travelDistance = instance.getTravelDistance(visitedNodes.last(), rechargeStation)
         val travelTime = instance.getTravelTime(visitedNodes.last(), rechargeStation)
         if (travelTime * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
-            println("could not add recharge (battery violation)")
+//            println("could not add recharge (battery violation)")
             return false
         }
-        println("inserted RECHARGE")
+//        println("inserted RECHARGE")
         currentTravelDistance += travelDistance
         currentBatteryCapacity -= instance.vehicleType.energyConsumption * travelDistance
         val rechargingTime = (instance.vehicleEnergyCapacity - currentBatteryCapacity) * rechargeStation.rechargingRate
-        println("rechargintime: $rechargingTime")
+//        println("rechargintime: $rechargingTime")
         currentTravelTime += travelTime + rechargingTime
         currentBatteryCapacity = instance.vehicleEnergyCapacity
         visitedNodes.add(rechargeStation)
@@ -129,12 +133,12 @@ data class Route(
         }
 
         if (fullTravelTime > instance.getTimewindow(depot).end) {
-            println("tour duration violation (depot)")
+//            println("tour duration violation (depot)")
             return true
         }
 
         if ((travelTimeFromLastNodeToCustomer + travelTimeFromCustomerToDepot) * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
-            println("battery capacity violation (depot)")
+//            println("battery capacity violation (depot)")
             return true
         }
 
@@ -164,12 +168,12 @@ data class Route(
         fullTravelTime += rechargingTime
 
         if (fullTravelTime > instance.getTimewindow(depot).end) {
-            println("tour duration violation (recharge)")
+//            println("tour duration violation (recharge)")
             return true
         }
 
         if (travelTimeFromRechargingStationToDepot * instance.vehicleType.energyConsumption > instance.vehicleType.energyCapacity) {
-            println("battery capacity violation (recharge)")
+//            println("battery capacity violation (recharge)")
             return true
         }
 

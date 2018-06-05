@@ -26,12 +26,20 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            val instanceString = instances[2]
+            for (i in 5..9) {
+              solveProblemForInstance(i)
+            }
+
+//            solveProblemForInstance(4)
+        }
+
+        private fun solveProblemForInstance(instanceId: Int) {
+            val instanceString = instances[instanceId]
             val instanceLoader = InstanceLoader()
             val instance = instanceLoader.load(instanceString)
             val solution = solver.solve(instance, constructionHeuristic)
             val verifier = EVRPTWRouteVerifier(instance)
-            val verified = verifier.verify(solution.routes, solution.cost, true)
+            val verified = verifier.verify(solution.routes, solution.cost, false)
 
             solution.writeToFile()
 
