@@ -82,6 +82,7 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                             insertedStations.clear()
                             break
                         } else {
+                            route.addSpecialNode(lastNode)
 //                            while (!insertedCustomer) {
 //                                if (addStation(instance, lastNode!!,route)) {
 //                                    insertedCustomer = true
@@ -120,7 +121,7 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
 
     private fun addStation(instance : EVRPTWInstance, lastNode: EVRPTWInstance.Node, route: Route) : Boolean {
         val sortedList = instance.rechargingStations
-                .sortedWith(compareBy({ instance.getTravelDistance(instance.depot, it) }))
+                .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
 
         var index = -1
         for (node: EVRPTWInstance.Node in route.visitedNodes.reversed()) {

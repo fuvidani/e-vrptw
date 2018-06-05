@@ -89,16 +89,12 @@ data class Route(
             return true
         }
 
-//        if (visitedNodes.size == 1 || (visitedNodes.size > 1 && instance.isRechargingStation(visitedNodes[1]))) {
-//
-//        } else {
-//            if (checkIfDepotIsNotReachable(node)) return true
-//            if (checkIfRechargeStationIsNotReachable(node)) return true
-//        }
 
-        if (visitedNodes.size > 1 || (visitedNodes.size > 1 && instance.isRechargingStation(visitedNodes[1]))) {
+        if (visitedNodes.size > 1) {
             if (checkIfDepotIsNotReachable(node)) return true
             if (checkIfRechargeStationIsNotReachable(node)) return true
+
+//            if (checkIfDepotIsNotReachable(node) && checkIfRechargeStationIsNotReachable(node)) return true
         }
 
         return false
@@ -181,5 +177,42 @@ data class Route(
         }
 
         return false
+    }
+
+    fun addSpecialNode(node : EVRPTWInstance.Customer): Boolean {
+        // check capacity constraint
+        if (currentCapacity + instance.getDemand(node) > instance.vehicleCapacity) {
+//            println("load capacity violation")
+            return false
+        }
+
+
+        // check if arrival in time window
+        val travelTimeFromLastToNode = instance.getTravelTime(visitedNodes.last(), node)
+        val travelTimeSum = currentTravelTime + travelTimeFromLastToNode
+
+        if (travelTimeSum > instance.getTimewindow(node).end) {
+//            println("time window violation")
+            return false
+        }
+
+        val travelDistance = instance.getTravelDistance(visitedNodes.last(), node)
+        currentTravelDistance += travelDistance
+
+        val travelTime = instance.getTravelTime(visitedNodes.last(), node)
+        currentTravelTime += travelTime
+        val waitingTime = instance.getTimewindow(node).start - currentTravelTime
+        if (waitingTime > 0) {
+            currentTravelTime += waitingTime
+        }
+        currentTravelTime += instance.getServiceTime(node)
+
+        currentCapacity += instance.getDemand(node)
+
+        currentBatteryCapacity -= instance.vehicleType.energyConsumption * travelDistance
+
+        visitedNodes.add(node)
+
+        return true
     }
 }

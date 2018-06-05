@@ -29,11 +29,11 @@ class Main {
 
         @JvmStatic
         fun main(args: Array<String>) {
-//            for (i in 0..9) {
-//                runAlgorithmOnInstance(i, false)
-//            }
+            for (i in 0..9) {
+                runAlgorithmOnInstance(i, false)
+            }
 
-            runAlgorithmOnInstance(7, true)
+//            runAlgorithmOnInstance(7, true)
         }
 
         private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean) {
