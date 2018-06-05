@@ -19,9 +19,7 @@ class TimeOrientedNearestNeighbourHeuristic(private val logEnabled: Boolean = tr
     private val log: Logger = Logger.getLogger(this.javaClass.name)
 
     override fun generateSolution(instance: EVRPTWInstance): EVRPTWSolution {
-
         var totalCost = 0.0
-
         val remainingCustomers = instance.customers.toMutableList()
         val routes = mutableListOf<MutableList<EVRPTWInstance.Node>>()
 
@@ -55,7 +53,6 @@ class TimeOrientedNearestNeighbourHeuristic(private val logEnabled: Boolean = tr
                     !blacklistStations.contains(it)
                 }
 
-
                 if (route.addNode(instance.depot)) {
                     routes.add(route.visitedNodes)
                     totalCost += route.currentTravelDistance
@@ -82,7 +79,6 @@ class TimeOrientedNearestNeighbourHeuristic(private val logEnabled: Boolean = tr
                         } else {
                             route.addNodeToRoute(lastNode)
                         }
-
                     }
                     if (remainingCustomers.isEmpty()) {
                         while (true) {

@@ -6,8 +6,6 @@ import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
 import java.util.HashSet
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 
-
-
 /**
  * <h4>About this class</h4>
  *
@@ -48,7 +46,7 @@ class Main {
             solution.writeToFile()
 
             println("instanceId: $instanceId, instance: $instanceString, verified: $verified, total cost: ${solution.cost}")
-            if (nodesMissing.isNotEmpty()){
+            if (nodesMissing.isNotEmpty()) {
                 println("missing customers: $nodesMissing")
             }
             println()

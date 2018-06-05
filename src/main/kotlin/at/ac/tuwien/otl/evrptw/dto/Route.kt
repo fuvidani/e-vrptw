@@ -17,9 +17,9 @@ class Route(
 ) {
     private val log: Logger = Logger.getLogger(this.javaClass.name)
     private val depot = instance.depot
-    var currentCapacity: Double = 0.0
-    var currentBatteryCapacity: Double = instance.vehicleEnergyCapacity
-    var currentTravelTime: Double = 0.0
+    private var currentCapacity: Double = 0.0
+    private var currentBatteryCapacity: Double = instance.vehicleEnergyCapacity
+    private var currentTravelTime: Double = 0.0
     var currentTravelDistance: Double = 0.0
     val visitedNodes: MutableList<EVRPTWInstance.Node> = mutableListOf(depot)
 
@@ -125,7 +125,7 @@ class Route(
 
     private fun isRechargeStationUnReachable(customer: EVRPTWInstance.Node): Boolean {
         val sortedStations = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(customer, it) }))
-        val nearestStation = sortedStations.filter { it.id != visitedNodes.last().id }.first()
+        val nearestStation = sortedStations.first { it.id != visitedNodes.last().id }
         val travelTimeFromLastNodeToCustomer = instance.getTravelTime(visitedNodes.last(), customer)
         val travelTimeFromCustomerToRechargeStation = instance.getTravelTime(customer, nearestStation)
         val travelTimeFromRechargingStationToDepot = instance.getTravelTime(nearestStation, depot)
@@ -158,7 +158,7 @@ class Route(
         return false
     }
 
-    fun addNodeToRoute(node : EVRPTWInstance.Customer): Boolean {
+    fun addNodeToRoute(node: EVRPTWInstance.Customer): Boolean {
         val travelDistance = instance.getTravelDistance(visitedNodes.last(), node)
         currentTravelDistance += travelDistance
 
