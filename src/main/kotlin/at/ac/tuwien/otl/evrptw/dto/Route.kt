@@ -89,25 +89,10 @@ data class Route(
             return true
         }
 
-
-        // check if enough energy to node and after to depot/recharge station
-//        val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(node, it) }))
-//        val travelTimeFromNodeToNearestRechargeStation = instance.getTravelTime(node, sortedList[0])
-//        val travelTimeFromNodeToDepot = instance.getTravelTime(node, depot)
-//        val additionalTravelTimeWithDepot = travelTimeFromLastToNode + travelTimeFromNodeToDepot
-//        val additionalTravelTimeWithNearestRechargeStation = travelTimeFromLastToNode + travelTimeFromNodeToNearestRechargeStation
-//        val travelTimeFromNearestRechargeStationToDepot = instance.getTravelTime(sortedList[0],depot)
-//
-//        if (additionalTravelTimeWithDepot * instance.vehicleType.energyConsumption > currentBatteryCapacity || currentTravelTime + additionalTravelTimeWithDepot + instance.getServiceTime(node) > instance.getTimewindow(depot).end) {
-//            val futureRechargeTime = (instance.vehicleEnergyCapacity - (currentBatteryCapacity - additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption) ) * sortedList[0].rechargingRate
-//            if (additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption > currentBatteryCapacity || currentTravelTime + additionalTravelTimeWithNearestRechargeStation + instance.getServiceTime(node) + travelTimeFromNearestRechargeStationToDepot + futureRechargeTime > instance.getTimewindow(depot).end){
-//                println("HEAVY violation")
-//                return true
-//            }
-//        }
-
-        if (checkIfDepotIsNotReachable(node)) return true
-        if (checkIfRechargeStationIsNotReachable(node)) return true
+        if (visitedNodes.size != 1 || (visitedNodes.size > 1 && instance.isRechargingStation(visitedNodes[1]))) {
+            if (checkIfDepotIsNotReachable(node)) return true
+            if (checkIfRechargeStationIsNotReachable(node)) return true
+        }
 
         return false
     }
