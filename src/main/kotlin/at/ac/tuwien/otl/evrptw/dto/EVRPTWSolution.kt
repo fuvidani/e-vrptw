@@ -12,9 +12,9 @@ import java.io.File
  * @since 0.1.0
  */
 data class EVRPTWSolution(
-        private val instance: EVRPTWInstance,
-        val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
-        var cost: Double
+    private val instance: EVRPTWInstance,
+    val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
+    var cost: Double
 ) {
     fun writeToFile() {
         File("solutions/" + instance.name + "_sol.txt").bufferedWriter().use { out ->

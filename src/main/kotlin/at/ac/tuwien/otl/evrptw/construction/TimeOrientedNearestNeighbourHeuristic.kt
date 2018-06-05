@@ -3,6 +3,7 @@ package at.ac.tuwien.otl.evrptw.construction
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.Route
+import java.util.logging.Logger
 
 /**
  * <h4>About this class</h4>
@@ -13,15 +14,16 @@ import at.ac.tuwien.otl.evrptw.dto.Route
  * @version 1.0.0
  * @since 1.0.0
  */
-class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
+class TimeOrientedNearestNeighbourHeuristic(private val logEnabled: Boolean = true) : IConstructionHeuristic {
+
+    private val log: Logger = Logger.getLogger(this.javaClass.name)
+
     override fun generateSolution(instance: EVRPTWInstance): EVRPTWSolution {
-
         var totalCost = 0.0
-
         val remainingCustomers = instance.customers.toMutableList()
         val routes = mutableListOf<MutableList<EVRPTWInstance.Node>>()
 
-        var route = Route(instance)
+        var route = Route(instance, logEnabled)
         while (remainingCustomers.isNotEmpty()) {
             val map = calculateMetric(remainingCustomers, route.visitedNodes.last(), instance)
             val sortedMap = map.toList().sortedBy { (_, value) -> value }.toMap()
@@ -51,12 +53,11 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                     !blacklistStations.contains(it)
                 }
 
-
                 if (route.addNode(instance.depot)) {
                     routes.add(route.visitedNodes)
                     totalCost += route.currentTravelDistance
-//                    println("added route to list")
-                    route = Route(instance)
+                    log("added route to list")
+                    route = Route(instance, logEnabled)
                 } else {
 
                     for (station in newSortedList) {
@@ -64,7 +65,7 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                             break
                         }
                         val lastNode = route.visitedNodes.last() as EVRPTWInstance.Customer
-                        route = Route(instance)
+                        route = Route(instance, logEnabled)
                         val newStationSorted = instance.rechargingStations
                                 .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
                         for (newStation in newStationSorted) {
@@ -78,15 +79,14 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                         } else {
                             route.addNodeToRoute(lastNode)
                         }
-
                     }
                     if (remainingCustomers.isEmpty()) {
                         while (true) {
                             if (route.addNode(instance.depot)) {
                                 routes.add(route.visitedNodes)
                                 totalCost += route.currentTravelDistance
-//                    println("added route to list")
-                                route = Route(instance)
+                                log("added route to list")
+                                route = Route(instance, logEnabled)
                                 break
                             } else {
                                 val newStationSorted = instance.rechargingStations
@@ -108,9 +108,7 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
 
     private fun calculateMetric(customers: List<EVRPTWInstance.Customer>, lastNode: EVRPTWInstance.Node, instance: EVRPTWInstance): Map<EVRPTWInstance.Customer, Double> {
         val map = HashMap<EVRPTWInstance.Customer, Double>()
-
-        customers.forEach { customer -> map.put(customer, calculateDistance(customer, lastNode, instance)) }
-
+        customers.forEach { customer -> map[customer] = calculateDistance(customer, lastNode, instance) }
         return map
     }
 
@@ -120,9 +118,18 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
         val delta3 = 0.05
 
         val dij = instance.getTravelDistance(lastNode, customer)
-        val Tij = instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(lastNode))
+        val tij =
+            instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(
+                lastNode
+            ))
         val vij = instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(lastNode) + instance.getTravelTime(lastNode, customer))
 
-        return delta1 * dij + delta2 * Tij + delta3 * vij
+        return delta1 * dij + delta2 * tij + delta3 * vij
+    }
+
+    private fun log(message: String) {
+        if (logEnabled) {
+            log.info(message)
+        }
     }
 }

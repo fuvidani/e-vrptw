@@ -6,8 +6,6 @@ import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
 import java.util.HashSet
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 
-
-
 /**
  * <h4>About this class</h4>
  *
@@ -23,7 +21,7 @@ class Main {
 
         private val testInstances = listOf("c101C10", "r102C10", "rc201C10")
         private val instances = listOf("c103_21", "c105_21", "c204_21", "r102_21", "r107_21", "r205_21", "r211_21", "rc101_21", "rc106_21", "rc203_21")
-        private val constructionHeuristic = TimeOrientedNearestNeighbourHeuristic()
+        private val constructionHeuristic = TimeOrientedNearestNeighbourHeuristic(false)
         private val solver = EVRPTWSolver()
 
         @JvmStatic
@@ -48,7 +46,7 @@ class Main {
             solution.writeToFile()
 
             println("instanceId: $instanceId, instance: $instanceString, verified: $verified, total cost: ${solution.cost}")
-            if (nodesMissing.isNotEmpty()){
+            if (nodesMissing.isNotEmpty()) {
                 println("missing customers: $nodesMissing")
             }
             println()
