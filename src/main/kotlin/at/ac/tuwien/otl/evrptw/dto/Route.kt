@@ -9,7 +9,7 @@ package at.ac.tuwien.otl.evrptw.dto
  * @version 0.1.0
  * @since 0.1.0
  */
-data class Route(
+class Route(
         private val instance: EVRPTWInstance
 ) {
     val depot = instance.depot
@@ -27,25 +27,33 @@ data class Route(
         } else if (!nodeViolatesConstraints(node)) {
 //            println("insert node $node")
 
-            val travelDistance = instance.getTravelDistance(visitedNodes.last(), node)
-            currentTravelDistance += travelDistance
+            return addNodeToRoute(node as EVRPTWInstance.Customer)
+        }
+        return false
+    }
 
-            val travelTime = instance.getTravelTime(visitedNodes.last(), node)
-            currentTravelTime += travelTime
-            val waitingTime = instance.getTimewindow(node).start - currentTravelTime
-            if (waitingTime > 0) {
-                currentTravelTime += waitingTime
-            }
-            currentTravelTime += instance.getServiceTime(node)
-
-            currentCapacity += instance.getDemand(node)
-
-            currentBatteryCapacity -= instance.vehicleType.energyConsumption * travelDistance
-
-            visitedNodes.add(node)
-
+    private fun nodeViolatesConstraints(node: EVRPTWInstance.Node): Boolean {
+        // check capacity constraint
+        if (currentCapacity + instance.getDemand(node) > instance.vehicleCapacity) {
+//            println("load capacity violation")
             return true
         }
+
+
+        // check if arrival in time window
+        val travelTimeFromLastToNode = instance.getTravelTime(visitedNodes.last(), node)
+        val travelTimeSum = currentTravelTime + travelTimeFromLastToNode
+
+        if (travelTimeSum > instance.getTimewindow(node).end) {
+//            println("time window violation")
+            return true
+        }
+
+        if (visitedNodes.size > 1) {
+            if (checkIfDepotIsNotReachable(node)) return true
+            if (checkIfRechargeStationIsNotReachable(node)) return true
+        }
+
         return false
     }
 
@@ -70,35 +78,6 @@ data class Route(
         currentBatteryCapacity -= instance.vehicleType.energyConsumption * travelDistance
         visitedNodes.add(depot)
         return true
-    }
-
-    private fun nodeViolatesConstraints(node: EVRPTWInstance.Node): Boolean {
-        // check capacity constraint
-        if (currentCapacity + instance.getDemand(node) > instance.vehicleCapacity) {
-//            println("load capacity violation")
-            return true
-        }
-
-
-        // check if arrival in time window
-        val travelTimeFromLastToNode = instance.getTravelTime(visitedNodes.last(), node)
-        val travelTimeSum = currentTravelTime + travelTimeFromLastToNode
-
-        if (travelTimeSum > instance.getTimewindow(node).end) {
-//            println("time window violation")
-            return true
-        }
-
-
-        if (visitedNodes.size == 1 || (visitedNodes.none { it is EVRPTWInstance.Customer } && visitedNodes.any { it is EVRPTWInstance.RechargingStation })) {
-
-        } else {
-            if (checkIfDepotIsNotReachable(node)) return true
-            if (checkIfRechargeStationIsNotReachable(node)) return true
-        }
-
-
-        return false
     }
 
     private fun addRechargeToRoute(rechargeStation: EVRPTWInstance.RechargingStation): Boolean {
@@ -178,5 +157,26 @@ data class Route(
         }
 
         return false
+    }
+
+    fun addNodeToRoute(node : EVRPTWInstance.Customer): Boolean {
+        val travelDistance = instance.getTravelDistance(visitedNodes.last(), node)
+        currentTravelDistance += travelDistance
+
+        val travelTime = instance.getTravelTime(visitedNodes.last(), node)
+        currentTravelTime += travelTime
+        val waitingTime = instance.getTimewindow(node).start - currentTravelTime
+        if (waitingTime > 0) {
+            currentTravelTime += waitingTime
+        }
+        currentTravelTime += instance.getServiceTime(node)
+
+        currentCapacity += instance.getDemand(node)
+
+        currentBatteryCapacity -= instance.vehicleType.energyConsumption * travelDistance
+
+        visitedNodes.add(node)
+
+        return true
     }
 }

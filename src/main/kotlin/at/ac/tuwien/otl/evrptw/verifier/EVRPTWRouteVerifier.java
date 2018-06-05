@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package at.ac.tuwien.otl.evrptw.dto;
+package at.ac.tuwien.otl.evrptw.verifier;
 
+import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance;
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance.Node;
 import java.util.List;
 import java.util.Locale;
@@ -69,8 +70,8 @@ public class EVRPTWRouteVerifier {
         double ST = instance.getServiceTime(prevNode);
         double D = ST;
         double TW = 0.0;
-        double E = instance.getTimewindow(prevNode).start;
-        double L = instance.getTimewindow(prevNode).end;
+        double E = instance.getTimewindow(prevNode).getStart();
+        double L = instance.getTimewindow(prevNode).getEnd();
         double deltaWT = 0.0;
         double deltaTW = 0.0;
 
@@ -93,8 +94,8 @@ public class EVRPTWRouteVerifier {
                 y = 0.0;
             }
 
-            deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).start - delta - L);
-            deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).end);
+            deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).getStart() - delta - L);
+            deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).getEnd());
 
             timeInNode = instance.getServiceTime(arriveAtNode);
             if(instance.isRechargingStation(arriveAtNode)) {
@@ -111,16 +112,16 @@ public class EVRPTWRouteVerifier {
 
             if(instance.isRechargingStation(arriveAtNode)) {
                 delta += timeInNode;
-                deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).start - delta - L);
-                deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).end);
+                deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).getStart() - delta - L);
+                deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).getEnd());
             } else
                 q = q + instance.getDemand(arriveAtNode);
 
             D = D + timeInNode + deltaWT + travelTime;
             ST += timeInNode;
             TW = TW + deltaTW;
-            E = Math.max(instance.getTimewindow(arriveAtNode).start - delta, E) - deltaWT;
-            L = Math.min(instance.getTimewindow(arriveAtNode).end - delta, L) + deltaTW;
+            E = Math.max(instance.getTimewindow(arriveAtNode).getStart() - delta, E) - deltaWT;
+            L = Math.min(instance.getTimewindow(arriveAtNode).getEnd() - delta, L) + deltaTW;
 
             prevNode = arriveAtNode;
         }

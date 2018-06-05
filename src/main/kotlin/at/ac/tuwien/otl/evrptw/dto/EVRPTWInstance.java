@@ -32,8 +32,8 @@ public class EVRPTWInstance {
     private List<Node> nodes;
     private BEVehicleType vehicleType;
 
-    EVRPTWInstance(String name, Depot depot, List<RechargingStation> rechargingStations,
-                   List<Customer> customers, BEVehicleType vehicleType) {
+    public EVRPTWInstance(String name, Depot depot, List<RechargingStation> rechargingStations,
+        List<Customer> customers, BEVehicleType vehicleType) {
         this.name = name;
         this.depot = depot;
 
@@ -239,8 +239,9 @@ public class EVRPTWInstance {
         final TimeWindow timeWindow;
         final double serviceTime;
 
-        Customer(int id, String name, double x, double y, double start, double end, double demand,
-                 double serviceTime) {
+        public Customer(int id, String name, double x, double y, double start, double end,
+            double demand,
+            double serviceTime) {
             super(id);
             this.name = name;
             this.location = new Location(x, y);
@@ -280,7 +281,7 @@ public class EVRPTWInstance {
         final Location location;
         final TimeWindow timeWindow;
 
-        Depot(int id, String name, double x, double y, double start, double end) {
+        public Depot(int id, String name, double x, double y, double start, double end) {
             super(id);
             this.name = name;
             this.location = new Location(x, y);
@@ -311,8 +312,8 @@ public class EVRPTWInstance {
         final TimeWindow timeWindow;
         final double rechargingRate;
 
-        RechargingStation(int id, String name, double x, double y, double start, double end,
-                          double rechargingRate) {
+        public RechargingStation(int id, String name, double x, double y, double start, double end,
+            double rechargingRate) {
             super(id);
             this.name = name;
             this.location = new Location(x, y);
@@ -355,7 +356,7 @@ public class EVRPTWInstance {
     public static class BEVehicleType extends VehicleType {
         final double energyCapacity, energyConsumption, loadCapacity, fixedCosts;
 
-        BEVehicleType(int id, String name, double fuelCapacity, double fuelConsumption,
+        public BEVehicleType(int id, String name, double fuelCapacity, double fuelConsumption,
             double loadCapacity,
             double fixedCosts) {
             super(id, name);

@@ -1,7 +1,6 @@
 package at.ac.tuwien.otl.evrptw.construction
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWRouteVerifier
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.Route
 
@@ -59,12 +58,12 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
 //                    println("added route to list")
                     route = Route(instance)
                 } else {
+
                     for (station in newSortedList) {
                         if (route.addNode(station)) {
                             break
                         }
-
-                        val lastNode = route.visitedNodes.last()
+                        val lastNode = route.visitedNodes.last() as EVRPTWInstance.Customer
                         route = Route(instance)
                         val newStationSorted = instance.rechargingStations
                                 .sortedWith(compareBy({ instance.getTravelDistance(lastNode, it) }))
@@ -75,23 +74,31 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
                         }
 
                         if (route.addNode(lastNode)) {
-                            if (remainingCustomers.size == 0) {
-                                if (route.addNode(instance.depot)) {
-                                    routes.add(route.visitedNodes)
-                                    totalCost += route.currentTravelDistance
-//                    println("added route to list")
-                                    route = Route(instance)
-
-                                } else {
-                                    // add further stations
-                                    println("beszoptuk")
-                                }
-                                break
-                            }
                             break
+                        } else {
+                            route.addNodeToRoute(lastNode)
+                        }
+
+                    }
+                    if (remainingCustomers.isEmpty()) {
+                        while (true) {
+                            if (route.addNode(instance.depot)) {
+                                routes.add(route.visitedNodes)
+                                totalCost += route.currentTravelDistance
+//                    println("added route to list")
+                                route = Route(instance)
+                                break
+                            } else {
+                                val newStationSorted = instance.rechargingStations
+                                        .sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
+                                for (newStation in newStationSorted) {
+                                    if (route.addNode(newStation)) {
+                                        break
+                                    }
+                                }
+                            }
                         }
                     }
-
                 }
             }
         }
