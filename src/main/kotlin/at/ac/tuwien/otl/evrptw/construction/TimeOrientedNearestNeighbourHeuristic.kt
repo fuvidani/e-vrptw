@@ -22,6 +22,10 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
         val remainingCustomers = instance.customers.toMutableList()
         val routes = mutableListOf<MutableList<EVRPTWInstance.Node>>()
 
+//        instance.customers.forEach {
+//            println(it.name + " " + instance.getTravelTime(it,instance.depot) * instance.vehicleType.energyConsumption)
+//        }
+
         var route = Route(instance)
         while (remainingCustomers.isNotEmpty()) {
             val map = calculateMetric(remainingCustomers, route.visitedNodes.last(), instance)
@@ -42,17 +46,80 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
 //                totalCost += route.currentTravelDistance
 //                println("added route to list")
 //                route = Route(instance)
-                val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
+                val sortedList = instance.rechargingStations
+                        .sortedWith(compareBy({ instance.getTravelDistance(route.visitedNodes.last(), it) }))
+                       // .filter { it.id != route.visitedNodes.last().id }
 
-
-                if (route.addNode(instance.depot)) {
-                    routes.add(route.visitedNodes)
-                    totalCost += route.currentTravelDistance
-                    println("added route to list")
-                    route = Route(instance)
-                } else {
-                    route.addNode(sortedList[0])
+                var index = -1
+                for (node : EVRPTWInstance.Node in route.visitedNodes.reversed()) {
+                    if (!instance.isRechargingStation(node)) {
+                        index = route.visitedNodes.indexOf(node)
+                        break
+                    }
                 }
+                val blacklistStations = route.visitedNodes.subList(index +1,route.visitedNodes.size)
+                val newSortedList = sortedList.filter {
+                    !blacklistStations.contains(it)
+                }
+
+                /*if (instance.isRechargingStation(route.visitedNodes.last())) {
+                    if (route.addNode(instance.depot)) {
+                        routes.add(route.visitedNodes)
+                        totalCost += route.currentTravelDistance
+                        println("added route to list")
+                        route = Route(instance)
+                    } else {
+                        route.addNode(sortedList.first())
+                    }
+                } else {
+                    if (!route.addNode(sortedList.first())) {
+                        route.addNode(instance.depot)
+                        routes.add(route.visitedNodes)
+                        totalCost += route.currentTravelDistance
+                        println("added route to list")
+                        route = Route(instance)
+                    }
+                }*/
+
+                val minDemand = remainingCustomers.map {
+                    it.demand
+                }.min()
+
+                if (minDemand!! > (instance.vehicleCapacity - route.currentCapacity)) {
+                    if (route.addNode(instance.depot)) {
+                        routes.add(route.visitedNodes)
+                        totalCost += route.currentTravelDistance
+                        println("added route to list")
+                        route = Route(instance)
+                    } else {
+                        route.addNode(newSortedList.first())
+                    }
+                } else {
+                    if (!route.addNode(newSortedList.first())) {
+                        route.addNode(instance.depot)
+                        routes.add(route.visitedNodes)
+                        totalCost += route.currentTravelDistance
+                        println("added route to list")
+                        route = Route(instance)
+                    }
+                }
+
+//                if (!route.addNode(sortedList.first())) {
+//                    route.addNode(instance.depot)
+//                    routes.add(route.visitedNodes)
+//                    totalCost += route.currentTravelDistance
+//                    println("added route to list")
+//                    route = Route(instance)
+//                }
+
+//                if (route.addNode(instance.depot)) {
+//                    routes.add(route.visitedNodes)
+//                    totalCost += route.currentTravelDistance
+//                    println("added route to list")
+//                    route = Route(instance)
+//                } else {
+//                    route.addNode(sortedList[0])
+//                }
             }
         }
 
@@ -68,9 +135,9 @@ class TimeOrientedNearestNeighbourHeuristic : IConstructionHeuristic {
     }
 
     private fun calculateDistance(customer: EVRPTWInstance.Customer, lastNode: EVRPTWInstance.Node, instance: EVRPTWInstance): Double {
-        val delta1 = 4
-        val delta2 = 3
-        val delta3 = 3
+        val delta1 = 0.9
+        val delta2 = 0.05
+        val delta3 = 0.05
 
         val dij = instance.getTravelDistance(lastNode, customer)
         val Tij = instance.getTimewindow(customer).start - (instance.getTimewindow(lastNode).start + instance.getServiceTime(lastNode))

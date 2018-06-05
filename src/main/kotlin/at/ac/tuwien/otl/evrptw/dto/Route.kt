@@ -12,10 +12,10 @@ package at.ac.tuwien.otl.evrptw.dto
 data class Route(
         private val instance: EVRPTWInstance
 ) {
-    private val depot = instance.depot
-    private var currentCapacity: Double = 0.0
-    private var currentBatteryCapacity: Double = instance.vehicleEnergyCapacity
-    private var currentTravelTime: Double = 0.0
+    val depot = instance.depot
+    var currentCapacity: Double = 0.0
+    var currentBatteryCapacity: Double = instance.vehicleEnergyCapacity
+    var currentTravelTime: Double = 0.0
     var currentTravelDistance: Double = 0.0
     val visitedNodes: MutableList<EVRPTWInstance.Node> = mutableListOf(depot)
 
@@ -52,14 +52,22 @@ data class Route(
     private fun addDepotToRoute(depot: EVRPTWInstance.Depot): Boolean {
         val travelTime = instance.getTravelTime(visitedNodes.last(), depot)
         if (travelTime * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
-            println("could not add depot")
+            println("could not add depot (battery violation)")
 
             return false
         }
+
+        if (travelTime + currentTravelTime > instance.getTimewindow(depot).end) {
+            println("could not add depot (tour duration violation)")
+
+            return false
+        }
+
         println("insert DEPOT")
         val travelDistance = instance.getTravelDistance(visitedNodes.last(), depot)
         currentTravelDistance += travelDistance
         currentTravelTime += travelTime
+        currentBatteryCapacity -= instance.vehicleType.energyConsumption * travelDistance
         visitedNodes.add(depot)
         return true
     }
@@ -83,20 +91,23 @@ data class Route(
 
 
         // check if enough energy to node and after to depot/recharge station
-        val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(node, it) }))
-        val travelTimeFromNodeToNearestRechargeStation = instance.getTravelTime(node, sortedList[0])
-        val travelTimeFromNodeToDepot = instance.getTravelTime(node, depot)
-        val additionalTravelTimeWithDepot = travelTimeFromLastToNode + travelTimeFromNodeToDepot
-        val additionalTravelTimeWithNearestRechargeStation = travelTimeFromLastToNode + travelTimeFromNodeToNearestRechargeStation
-        val travelTimeFromNearestRechargeStationToDepot = instance.getTravelTime(sortedList[0],depot)
+//        val sortedList = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(node, it) }))
+//        val travelTimeFromNodeToNearestRechargeStation = instance.getTravelTime(node, sortedList[0])
+//        val travelTimeFromNodeToDepot = instance.getTravelTime(node, depot)
+//        val additionalTravelTimeWithDepot = travelTimeFromLastToNode + travelTimeFromNodeToDepot
+//        val additionalTravelTimeWithNearestRechargeStation = travelTimeFromLastToNode + travelTimeFromNodeToNearestRechargeStation
+//        val travelTimeFromNearestRechargeStationToDepot = instance.getTravelTime(sortedList[0],depot)
+//
+//        if (additionalTravelTimeWithDepot * instance.vehicleType.energyConsumption > currentBatteryCapacity || currentTravelTime + additionalTravelTimeWithDepot + instance.getServiceTime(node) > instance.getTimewindow(depot).end) {
+//            val futureRechargeTime = (instance.vehicleEnergyCapacity - (currentBatteryCapacity - additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption) ) * sortedList[0].rechargingRate
+//            if (additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption > currentBatteryCapacity || currentTravelTime + additionalTravelTimeWithNearestRechargeStation + instance.getServiceTime(node) + travelTimeFromNearestRechargeStationToDepot + futureRechargeTime > instance.getTimewindow(depot).end){
+//                println("HEAVY violation")
+//                return true
+//            }
+//        }
 
-        if (additionalTravelTimeWithDepot * instance.vehicleType.energyConsumption > currentBatteryCapacity || currentTravelTime + additionalTravelTimeWithDepot + instance.getServiceTime(node) > instance.getTimewindow(depot).end) {
-            val futureRechargeTime = (instance.vehicleEnergyCapacity - (currentBatteryCapacity - additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption) ) * sortedList[0].rechargingRate
-            if (additionalTravelTimeWithNearestRechargeStation * instance.vehicleType.energyConsumption > currentBatteryCapacity || currentTravelTime + additionalTravelTimeWithNearestRechargeStation + instance.getServiceTime(node) + travelTimeFromNearestRechargeStationToDepot + futureRechargeTime > instance.getTimewindow(depot).end){
-                println("HEAVY violation")
-                return true
-            }
-        }
+        if (checkIfDepotIsNotReachable(node)) return true
+        if (checkIfRechargeStationIsNotReachable(node)) return true
 
         return false
     }
@@ -105,7 +116,7 @@ data class Route(
         val travelDistance = instance.getTravelDistance(visitedNodes.last(), rechargeStation)
         val travelTime = instance.getTravelTime(visitedNodes.last(), rechargeStation)
         if (travelTime * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
-            println("could not add recharge")
+            println("could not add recharge (battery violation)")
             return false
         }
         println("inserted RECHARGE")
@@ -118,5 +129,65 @@ data class Route(
         visitedNodes.add(rechargeStation)
 
         return true
+    }
+
+    private fun checkIfDepotIsNotReachable(customer: EVRPTWInstance.Node): Boolean {
+        val travelTimeFromLastNodeToCustomer = instance.getTravelTime(visitedNodes.last(), customer)
+        val travelTimeFromCustomerToDepot = instance.getTravelTime(customer, depot)
+        val customerServiceTime = instance.getServiceTime(customer)
+        val arrivingTime = currentTravelTime + travelTimeFromLastNodeToCustomer
+
+        var fullTravelTime = currentTravelTime + travelTimeFromLastNodeToCustomer + customerServiceTime + travelTimeFromCustomerToDepot
+        val waitingTime = instance.getTimewindow(customer).start - arrivingTime
+        if (waitingTime > 0) {
+            fullTravelTime += waitingTime
+        }
+
+        if (fullTravelTime > instance.getTimewindow(depot).end) {
+            println("tour duration violation (depot)")
+            return true
+        }
+
+        if ((travelTimeFromLastNodeToCustomer + travelTimeFromCustomerToDepot) * instance.vehicleType.energyConsumption > currentBatteryCapacity) {
+            println("battery capacity violation (depot)")
+            return true
+        }
+
+        return false
+    }
+
+    private fun checkIfRechargeStationIsNotReachable(customer: EVRPTWInstance.Node): Boolean {
+        val sortedStations = instance.rechargingStations.sortedWith(compareBy({ instance.getTravelDistance(customer, it) }))
+        val nearestStation = sortedStations.filter { it.id != visitedNodes.last().id }.first()
+        val travelTimeFromLastNodeToCustomer = instance.getTravelTime(visitedNodes.last(), customer)
+        val travelTimeFromCustomerToRechargeStation = instance.getTravelTime(customer, nearestStation)
+        val travelTimeFromRechargingStationToDepot = instance.getTravelTime(nearestStation, depot)
+        val customerServiceTime = instance.getServiceTime(customer)
+        val arrivingTime = currentTravelTime + travelTimeFromLastNodeToCustomer
+
+        var fullTravelTime = currentTravelTime + travelTimeFromLastNodeToCustomer + customerServiceTime + travelTimeFromCustomerToRechargeStation + travelTimeFromRechargingStationToDepot
+        val waitingTime = instance.getTimewindow(customer).start - arrivingTime
+        if (waitingTime > 0) {
+            fullTravelTime += waitingTime
+        }
+
+        val consumptionUntilStation = (travelTimeFromLastNodeToCustomer + travelTimeFromCustomerToRechargeStation) * instance.vehicleType.energyConsumption
+        val batteryCapacityAtStation = currentBatteryCapacity - consumptionUntilStation
+
+        val rechargingTime = (instance.vehicleEnergyCapacity - batteryCapacityAtStation) * nearestStation.rechargingRate
+
+        fullTravelTime += rechargingTime
+
+        if (fullTravelTime > instance.getTimewindow(depot).end) {
+            println("tour duration violation (recharge)")
+            return true
+        }
+
+        if (travelTimeFromRechargingStationToDepot * instance.vehicleType.energyConsumption > instance.vehicleType.energyCapacity) {
+            println("battery capacity violation (recharge)")
+            return true
+        }
+
+        return false
     }
 }

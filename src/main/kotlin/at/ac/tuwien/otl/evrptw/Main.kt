@@ -26,7 +26,7 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            val instanceString = instances[1]
+            val instanceString = instances[4]
             val instanceLoader = InstanceLoader()
             val instance = instanceLoader.load(instanceString)
             val solution = solver.solve(instance, constructionHeuristic)
