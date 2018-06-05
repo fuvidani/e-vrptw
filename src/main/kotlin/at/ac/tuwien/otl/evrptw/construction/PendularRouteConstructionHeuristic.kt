@@ -52,6 +52,14 @@ class PendularRouteConstructionHeuristic : IConstructionHeuristic {
         }
         return EVRPTWSolution(instance, routes, totalCost)
     }
+
+    private fun getCustomersThatNeedRechargeBeforeVisiting(instance: EVRPTWInstance): List<EVRPTWInstance.Customer> {
+        for (customer in instance.customers) {
+            val startBatteryCapacity = instance.vehicleEnergyCapacity
+            // collect customers that need a recharge before visiting them (i.e. D -> R -> C)
+        }
+        return emptyList()
+    }
 }
 
 data class PendularRoute(private val instance: EVRPTWInstance) {
