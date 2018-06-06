@@ -1,10 +1,11 @@
 package at.ac.tuwien.otl.evrptw
 
-import at.ac.tuwien.otl.evrptw.util.EVRPTWSolver
-import at.ac.tuwien.otl.evrptw.construction.CapacitatedVehicleRoutingProblemWithTimeWindows
-import at.ac.tuwien.otl.evrptw.construction.Pair
+import at.ac.tuwien.otl.evrptw.construction.TimeOrientedNearestNeighbourHeuristic
+import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
+import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
+import java.util.HashSet
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
-import at.ac.tuwien.otl.evrptw.dto.InstanceLoader
+import java.util.concurrent.TimeUnit
 
 /**
  * <h4>About this class</h4>
@@ -20,70 +21,70 @@ class Main {
     companion object {
 
         private val testInstances = listOf("c101C10", "r102C10", "rc201C10")
-        // private val constructionHeuristic = ConstructionHeuristic()
+        private val instances = listOf("c103_21", "c105_21", "c204_21", "r102_21", "r107_21", "r205_21", "r211_21", "rc101_21", "rc106_21", "rc203_21")
+        private val constructionHeuristic = TimeOrientedNearestNeighbourHeuristic(false)
         private val solver = EVRPTWSolver()
+        private const val rampUpRuns = 20
+        private const val measuredRuns = 30
 
         @JvmStatic
         fun main(args: Array<String>) {
-            println("Hello World")
-            val instanceLoader = InstanceLoader()
-            val instance  = instanceLoader.load(testInstances[0])
-            //val locations : MutableList<Pair<Int, Int>> = instance.customers.map { Pair(it.location.x.toInt(),it.location.y.toInt()) }.toMutableList()
-            val numberOfVehicles = 5
-            val startLocations = IntArray(numberOfVehicles)
-            val endLocations = IntArray(numberOfVehicles)
-            for (index in 0 until numberOfVehicles) {
-                //startLocations[index] = (instance.depot as EVRPTWInstance.Depot).location.x.toInt()
-                startLocations[index] = instance.numCustomers
-                //endLocations[index] = (instance.depot as EVRPTWInstance.Depot).location.y.toInt()
-                endLocations[index] = instance.numCustomers
+            // Ramp-up phase, ignore runtimes
+            for (j in 1..rampUpRuns) {
+                for (i in 0..9) {
+                    runAlgorithmOnInstance(i, false)
+                }
             }
+            val instanceRuntimeMap: MutableMap<Int, MutableList<Long>> = mutableMapOf()
+            for (j in 1..measuredRuns) {
+                println("\n\n\nRun number $j")
+                for (i in 0..9) {
+                    val runtimeInNano = runAlgorithmOnInstance(i, false)
+                    if (instanceRuntimeMap[i] == null) {
+                        instanceRuntimeMap[i] = mutableListOf()
+                    }
+                    instanceRuntimeMap[i]!!.add(runtimeInNano)
+                }
+            }
+            println("\nAvg. runtime for each instance across $measuredRuns runs")
+            for (i in 0..9) {
+                println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
+            }
+        }
 
-            val problem = CapacitatedVehicleRoutingProblemWithTimeWindows(
-                //listOf(Pair((instance.depot as EVRPTWInstance.Depot).location.x.toInt(),(instance.depot as EVRPTWInstance.Depot).location.y.toInt())) +
-                        instance.customers.map { Pair(it.location.x.toInt(),it.location.y.toInt()) } + listOf(Pair((instance.depot as EVRPTWInstance.Depot).location.x.toInt(),(instance.depot as EVRPTWInstance.Depot).location.y.toInt())),
-                instance.customers.map { it.demand.toInt() },
-                instance.customers.map { Pair(it.timeWindow.start.toInt(),it.timeWindow.end.toInt()) },
-                instance.customers.map { 0 },
-                200,
-                listOf(1236,1236,1236,1236,1236,1236,1236,1236,1236,1236,1236,1236),
-                instance.customers.map { instance.vehicleEnergyConsumption.toInt() },
-                startLocations,
-                endLocations
+        private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean): Long {
+            val instanceString = instances[instanceId]
+            val instanceLoader = InstanceLoader()
+            val instance = instanceLoader.load(instanceString)
+            val start = System.nanoTime()
+            val solution = solver.solve(instance, constructionHeuristic)
+            val durationInNano = System.nanoTime() - start
+            val nodesMissing = allNodesInRoutes(instance, solution.routes)
+
+            val verifier = EVRPTWRouteVerifier(instance)
+            val verified = verifier.verify(solution.routes, solution.cost, detailed)
+
+            solution.writeToFile()
+
+            println(
+                "instanceId: $instanceId, instance: $instanceString, verified: $verified, total cost: ${solution.cost}, runtime: ${TimeUnit.NANOSECONDS.toMillis(
+                    durationInNano
+                )} ms"
             )
-            /*val xMax = 20
-            val yMax = 20
-            val demandMax = 3
-            val timeWindowMax = 24 * 60
-            val timeWindowWidth = 4 * 60
-            val penaltyMin = 50
-            val penaltyMax = 100
-            val endTime = 24 * 60
-            val costCoefficientMax = 3
+            if (nodesMissing.isNotEmpty()) {
+                println("missing customers: $nodesMissing")
+                println()
+            }
+            return durationInNano
+        }
 
-            val orders = 100
-            val vehicles = 20
-            val capacity = 50
-
-            problem.buildOrders(
-                orders,
-                xMax,
-                yMax,
-                demandMax,
-                timeWindowMax,
-                timeWindowWidth,
-                penaltyMin,
-                penaltyMax
-            )
-            problem.buildFleet(
-                vehicles,
-                xMax,
-                yMax,
-                endTime,
-                capacity,
-                costCoefficientMax
-            )*/
-            problem.solve(instance.numCustomers, numberOfVehicles)
+        private fun allNodesInRoutes(instance: EVRPTWInstance, routes: List<List<EVRPTWInstance.Node>>): Set<EVRPTWInstance.Node> {
+            val nodes = HashSet<EVRPTWInstance.Node>(instance.customers)
+            for (route in routes)
+                for (n in route) {
+                    nodes.remove(n)
+                }
+            return nodes
         }
     }
 }
