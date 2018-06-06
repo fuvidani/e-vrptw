@@ -5,6 +5,7 @@ import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
 import java.util.HashSet
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
+import java.util.concurrent.TimeUnit
 
 /**
  * <h4>About this class</h4>
@@ -23,21 +24,41 @@ class Main {
         private val instances = listOf("c103_21", "c105_21", "c204_21", "r102_21", "r107_21", "r205_21", "r211_21", "rc101_21", "rc106_21", "rc203_21")
         private val constructionHeuristic = TimeOrientedNearestNeighbourHeuristic(false)
         private val solver = EVRPTWSolver()
+        private const val rampUpRuns = 20
+        private const val measuredRuns = 30
 
         @JvmStatic
         fun main(args: Array<String>) {
-            for (i in 0..9) {
-                runAlgorithmOnInstance(i, false)
+            // Ramp-up phase, ignore runtimes
+            for (j in 1..rampUpRuns) {
+                for (i in 0..9) {
+                    runAlgorithmOnInstance(i, false)
+                }
             }
-
-//            runAlgorithmOnInstance(7, true)
+            val instanceRuntimeMap: MutableMap<Int, MutableList<Long>> = mutableMapOf()
+            for (j in 1..measuredRuns) {
+                println("\n\n\nRun number $j")
+                for (i in 0..9) {
+                    val runtimeInNano = runAlgorithmOnInstance(i, false)
+                    if (instanceRuntimeMap[i] == null) {
+                        instanceRuntimeMap[i] = mutableListOf()
+                    }
+                    instanceRuntimeMap[i]!!.add(runtimeInNano)
+                }
+            }
+            println("\nAvg. runtime for each instance across $measuredRuns runs")
+            for (i in 0..9) {
+                println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
+            }
         }
 
-        private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean) {
+        private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean): Long {
             val instanceString = instances[instanceId]
             val instanceLoader = InstanceLoader()
             val instance = instanceLoader.load(instanceString)
+            val start = System.nanoTime()
             val solution = solver.solve(instance, constructionHeuristic)
+            val durationInNano = System.nanoTime() - start
             val nodesMissing = allNodesInRoutes(instance, solution.routes)
 
             val verifier = EVRPTWRouteVerifier(instance)
@@ -45,11 +66,16 @@ class Main {
 
             solution.writeToFile()
 
-            println("instanceId: $instanceId, instance: $instanceString, verified: $verified, total cost: ${solution.cost}")
+            println(
+                "instanceId: $instanceId, instance: $instanceString, verified: $verified, total cost: ${solution.cost}, runtime: ${TimeUnit.NANOSECONDS.toMillis(
+                    durationInNano
+                )} ms"
+            )
             if (nodesMissing.isNotEmpty()) {
                 println("missing customers: $nodesMissing")
+                println()
             }
-            println()
+            return durationInNano
         }
 
         private fun allNodesInRoutes(instance: EVRPTWInstance, routes: List<List<EVRPTWInstance.Node>>): Set<EVRPTWInstance.Node> {
