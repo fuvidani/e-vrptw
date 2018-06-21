@@ -3,6 +3,7 @@ package at.ac.tuwien.otl.evrptw
 import at.ac.tuwien.otl.evrptw.construction.IConstructionHeuristic
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import at.ac.tuwien.otl.evrptw.metaheuristic.IMetaHeuristic
 
 /**
  * <h4>About this class</h4>
@@ -15,7 +16,9 @@ import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
  */
 class EVRPTWSolver {
 
-    fun solve(instance: EVRPTWInstance, constructionHeuristic: IConstructionHeuristic): EVRPTWSolution {
-        return constructionHeuristic.generateSolution(instance)
+    fun solve(instance: EVRPTWInstance, constructionHeuristic: IConstructionHeuristic, metaHeuristic: IMetaHeuristic): EVRPTWSolution {
+        val solution = constructionHeuristic.generateSolution(instance)
+
+        return metaHeuristic.improveSolution(solution)
     }
 }
