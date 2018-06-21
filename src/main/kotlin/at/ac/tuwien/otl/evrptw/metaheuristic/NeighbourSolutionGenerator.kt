@@ -4,7 +4,7 @@ import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.ExchangeSequence
 import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
-import java.util.*
+import java.util.Random
 
 /**
  * <h4>About this class</h4>
