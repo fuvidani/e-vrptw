@@ -5,7 +5,6 @@ import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.metaheuristic.HybridVnsTsMetaHeuristic
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**

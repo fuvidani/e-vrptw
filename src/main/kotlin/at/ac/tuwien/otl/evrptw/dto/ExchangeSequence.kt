@@ -1,6 +1,4 @@
-package at.ac.tuwien.otl.evrptw.metaheuristic
-
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
+package at.ac.tuwien.otl.evrptw.dto
 
 /**
  * <h4>About this class</h4>
