@@ -4,7 +4,7 @@ import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.ExchangeSequence
 import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
-import java.util.Random
+import java.util.*
 
 /**
  * <h4>About this class</h4>
@@ -20,18 +20,20 @@ class NeighbourSolutionGenerator {
     private val random = Random(123456)
 
     fun generateRandomPoint(solution: EVRPTWSolution, neighbour: Int): EVRPTWSolution {
+        val result = EVRPTWSolution(solution) // we need a fresh very deep copy
+
         val routes: MutableList<MutableList<EVRPTWInstance.Node>> = mutableListOf()
         val neighbourhoodStructure = NeighbourhoodStructure.STRUCTURES[neighbour]!!
 
-        if (solution.routes.size < neighbourhoodStructure.numberOfInvolvedRoutes) {
+        if (result.routes.size < neighbourhoodStructure.numberOfInvolvedRoutes) {
             throw RuntimeException("ERROR: fewer routes than involved routes")
         }
 
         for (i in 0 until neighbourhoodStructure.numberOfInvolvedRoutes) {
-            val index = random.nextInt(solution.routes.size)
+            val index = random.nextInt(result.routes.size)
 
-            routes.add(solution.routes[index])
-            solution.routes.removeAt(index)
+            routes.add(result.routes[index])
+            result.routes.removeAt(index)
         }
 
         val exchangeSequences = mutableListOf<ExchangeSequence>()
@@ -67,8 +69,8 @@ class NeighbourSolutionGenerator {
             routes[i].addAll(startIndex, sequence)
         }
 
-        solution.routes.addAll(routes)
+        result.routes.addAll(routes)
 
-        return solution
+        return result
     }
 }

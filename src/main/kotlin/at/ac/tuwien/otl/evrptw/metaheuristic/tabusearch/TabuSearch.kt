@@ -15,10 +15,11 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
 class TabuSearch {
 
     fun apply(solution: EVRPTWSolution): EVRPTWSolution {
-        var overallBestSolution = solution
+        var overallBestSolution = EVRPTWSolution(solution) // create deep copy
         var bestCandidate = overallBestSolution
         val tabuList = mutableListOf(bestCandidate) // add incoming solution to prevent its reversal
         var iteration = 0
+
         while (iteration < N_TABU) {
             bestCandidate = bestSolutionOfNeighbourhood(bestCandidate, tabuList)
             tabuList.add(bestCandidate)
@@ -28,6 +29,7 @@ class TabuSearch {
             }
             iteration++
         }
+
         return overallBestSolution
     }
 
