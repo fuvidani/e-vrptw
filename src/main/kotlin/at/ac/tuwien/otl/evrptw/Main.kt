@@ -3,9 +3,9 @@ package at.ac.tuwien.otl.evrptw
 import at.ac.tuwien.otl.evrptw.construction.TimeOrientedNearestNeighbourHeuristic
 import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import at.ac.tuwien.otl.evrptw.loader.InstanceLoader
-import java.util.HashSet
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.metaheuristic.HybridVnsTsMetaHeuristic
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -52,6 +52,7 @@ class Main {
             for (i in 0..9) {
                 println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
             }*/
+//            println(Random().nextInt(1-1) + 1)
             runAlgorithmOnInstance(0, false)
         }
 

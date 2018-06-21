@@ -1,5 +1,7 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic
 
+import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
+
 /**
  * <h4>About this class</h4>
 
@@ -9,7 +11,7 @@ package at.ac.tuwien.otl.evrptw.metaheuristic
  * @version 1.0.0
  * @since 1.0.0
  */
-data class NeighbourhoodStructure(
-    val numberOfInvolvedRoutes: Int,
-    val maxVertices: Int
+data class ExchangeSequence(
+    val nodes: List<EVRPTWInstance.Node>,
+    val startIndex: Int
 )
