@@ -1,6 +1,7 @@
 package at.ac.tuwien.otl.evrptw.dto
 
 import java.io.File
+import java.util.stream.Collectors
 
 /**
  * <h4>About this class</h4>
@@ -12,10 +13,56 @@ import java.io.File
  * @since 0.1.0
  */
 data class EVRPTWSolution(
-    private val instance: EVRPTWInstance,
+    val instance: EVRPTWInstance,
     val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
     var cost: Double
 ) {
+    /**
+     * Copy constructor.
+     */
+    constructor(solution: EVRPTWSolution) : this(solution.instance, solution.routes
+        .stream()
+        .map {
+            it
+                .stream()
+                .map { node ->
+                    when (node) {
+                        is EVRPTWInstance.Depot -> EVRPTWInstance.Depot(
+                            node.id,
+                            node.name,
+                            node.location.x,
+                            node.location.y,
+                            node.timeWindow.start,
+                            node.timeWindow.end
+                        )
+                        is EVRPTWInstance.Customer -> EVRPTWInstance.Customer(
+                            node.id,
+                            node.name,
+                            node.location.x,
+                            node.location.y,
+                            node.timeWindow.start,
+                            node.timeWindow.end,
+                            node.demand,
+                            node.serviceTime
+                        )
+                        else -> EVRPTWInstance.RechargingStation(
+                            (node as EVRPTWInstance.RechargingStation).id,
+                            node.name,
+                            node.location.x,
+                            node.location.y,
+                            node.timeWindow.start,
+                            node.timeWindow.end,
+                            node.rechargingRate
+                        )
+                    }
+                }
+                .collect(Collectors.toList())
+                .toMutableList()
+        }
+        .collect(Collectors.toList())
+        .toMutableList(),
+        solution.cost)
+
     fun writeToFile() {
         File("solutions/" + instance.name + "_sol.txt").bufferedWriter().use { out ->
             out.write("# solution for " + instance.name)
