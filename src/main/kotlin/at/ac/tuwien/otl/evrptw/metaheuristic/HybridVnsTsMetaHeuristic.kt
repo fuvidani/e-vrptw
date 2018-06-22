@@ -18,8 +18,8 @@ import java.util.logging.Logger
  */
 class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHeuristic {
     private val log: Logger = Logger.getLogger(this.javaClass.name)
-    private val neighbourSolutionGenerator = NeighbourSolutionGenerator()
-    private val tabuSearch = TabuSearch()
+    private val neighbourSolutionGenerator = ShakingNeighbourSolutionGenerator()
+    private val tabuSearch = TabuSearch(logEnabled)
 
     override fun improveSolution(evrptwSolution: EVRPTWSolution): EVRPTWSolution {
         var bestSolution = evrptwSolution

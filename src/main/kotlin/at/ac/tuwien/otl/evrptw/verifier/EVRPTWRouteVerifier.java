@@ -47,10 +47,10 @@ public class EVRPTWRouteVerifier {
         return Double.isFinite(c);
     }
 
-    public double calculateTotalCost(List<List<Node>> routes) {
+    public double calculateTotalCost(List<List<Node>> routes, boolean detailedMode) {
         double c = 0.0;
         for(int i = 0; i < routes.size(); i++) {
-            c = c + calculate(routes.get(i), i + 1, true);
+            c = c + calculate(routes.get(i), i + 1, detailedMode);
         }
         return c;
     }

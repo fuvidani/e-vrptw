@@ -15,7 +15,7 @@ import java.util.Random
  * @version 1.0.0
  * @since 1.0.0
  */
-class NeighbourSolutionGenerator {
+class ShakingNeighbourSolutionGenerator {
 
     private val random = Random(123456)
 

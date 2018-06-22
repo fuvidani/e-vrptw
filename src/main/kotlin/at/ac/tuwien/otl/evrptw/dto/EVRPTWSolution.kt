@@ -13,7 +13,7 @@ import java.util.stream.Collectors
  * @since 0.1.0
  */
 data class EVRPTWSolution(
-    private val instance: EVRPTWInstance,
+    val instance: EVRPTWInstance,
     val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
     var cost: Double
 ) {
