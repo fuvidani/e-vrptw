@@ -2,7 +2,6 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
 import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.util.logging.Logger
@@ -18,7 +17,7 @@ import java.util.logging.Logger
  */
 class TabuSearch(private val logEnabled: Boolean = true) {
     private val log: Logger = Logger.getLogger(this.javaClass.name)
-    private val explorers = listOf(TwoOptArcExchangeExplorer(), StationInReExplorer())
+    private val explorers = listOf(TwoOptArcExchangeExplorer())
 
     fun apply(solution: EVRPTWSolution): EVRPTWSolution {
         var overallBestSolution = EVRPTWSolution(solution) // create deep copy

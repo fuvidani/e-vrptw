@@ -52,7 +52,9 @@ class Main {
                 println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
             }*/
 //            println(Random().nextInt(1-1) + 1)
-            runAlgorithmOnInstance(0, false)
+            for (i in 0 until 1) {
+                runAlgorithmOnInstance(i, false)
+            }
         }
 
         private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean): Long {
