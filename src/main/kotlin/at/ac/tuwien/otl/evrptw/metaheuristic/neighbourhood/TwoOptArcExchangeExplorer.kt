@@ -1,6 +1,8 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood
 
+import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import at.ac.tuwien.otl.evrptw.dto.Route
 
 /**
  * <h4>About this class</h4>
@@ -16,16 +18,15 @@ class TwoOptArcExchangeExplorer :
 
     override fun exploreEverySolution(initialSolution: EVRPTWSolution): List<EVRPTWSolution> {
         val result = mutableListOf<EVRPTWSolution>()
-        val currentSolution = EVRPTWSolution(initialSolution)
-        for (routeIndex in 0 until currentSolution.routes.size) {
-            val route = currentSolution.routes[routeIndex]
+        for (routeIndex in 0 until initialSolution.routes.size) {
+            val route = initialSolution.routes[routeIndex]
 
-            for (secondRouteIndex in (routeIndex + 1) until currentSolution.routes.size) {
-                val secondRoute = currentSolution.routes[secondRouteIndex]
+            for (secondRouteIndex in (routeIndex + 1) until initialSolution.routes.size) {
+                val secondRoute = initialSolution.routes[secondRouteIndex]
                 for (nodeOfFirstRoute in 1 until route.size - 1) { // start at 1 and end -1 before due to depot
                     for (nodeOfSecondRoute in 1 until secondRoute.size - 1) {
                         val neighbourSolution = performTwoOptExchange(
-                            currentSolution,
+                            initialSolution,
                             routeIndex,
                             nodeOfFirstRoute,
                             secondRouteIndex,
@@ -46,9 +47,10 @@ class TwoOptArcExchangeExplorer :
         secondRouteIndex: Int,
         secondRouteNoteIndex: Int
     ): EVRPTWSolution {
-        val result = EVRPTWSolution(solution)
-        val firstRoute = result.routes[firstRouteIndex]
-        val secondRoute = result.routes[secondRouteIndex]
+        val routes = solution.copyOfRoutes()
+
+        val firstRoute = routes[firstRouteIndex]
+        val secondRoute = routes[secondRouteIndex]
 
         val newFirstRoute = firstRoute.subList(0, firstRouteNodeIndex + 1).toList() + secondRoute.subList(
             secondRouteNoteIndex,
@@ -59,12 +61,12 @@ class TwoOptArcExchangeExplorer :
             firstRoute.size
         ).toList()
 
-        result.routes[firstRouteIndex].clear()
-        result.routes[firstRouteIndex].addAll(newFirstRoute)
-        result.routes[secondRouteIndex].clear()
-        result.routes[secondRouteIndex].addAll(newSecondRoute)
+        routes[firstRouteIndex].clear()
+        routes[firstRouteIndex].addAll(newFirstRoute)
+        routes[secondRouteIndex].clear()
+        routes[secondRouteIndex].addAll(newSecondRoute)
         // TODO maybe recalculate costs, violations here?
-        return result
+        return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance))
     }
 
     private fun calculateTotalCostBasedOnOtherSolution(

@@ -31,6 +31,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
             if (evaluateSolution(bestCandidate) < evaluateSolution(overallBestSolution)) {
                 overallBestSolution = bestCandidate
+                log("New local optimum found")
             }
             iteration++
         }
@@ -63,7 +64,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
     }
 
     private fun evaluateSolution(solution: EVRPTWSolution): Double {
-        return EVRPTWRouteVerifier(solution.instance).calculateTotalCost(solution.routes, false)
+        return solution.fitnessValue.fitness
     }
 
     private fun log(message: String) {

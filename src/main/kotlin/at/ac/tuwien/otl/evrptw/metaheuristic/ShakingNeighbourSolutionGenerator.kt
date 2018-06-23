@@ -17,20 +17,20 @@ class ShakingNeighbourSolutionGenerator {
     private val random = Random(123456)
 
     fun generateRandomPoint(solution: EVRPTWSolution, neighbour: Int): EVRPTWSolution {
-        val result = EVRPTWSolution(solution) // we need a fresh very deep copy
+        val resultRoutes = solution.copyOfRoutes()
 
         val routes: MutableList<MutableList<EVRPTWInstance.Node>> = mutableListOf()
         val neighbourhoodStructure = NeighbourhoodStructure.STRUCTURES[neighbour]!!
 
-        if (result.routes.size < neighbourhoodStructure.numberOfInvolvedRoutes) {
+        if (resultRoutes.size < neighbourhoodStructure.numberOfInvolvedRoutes) {
             throw RuntimeException("ERROR: fewer routes than involved routes")
         }
 
         for (i in 0 until neighbourhoodStructure.numberOfInvolvedRoutes) {
-            val index = random.nextInt(result.routes.size)
+            val index = random.nextInt(resultRoutes.size)
 
-            routes.add(result.routes[index])
-            result.routes.removeAt(index)
+            routes.add(resultRoutes[index])
+            resultRoutes.removeAt(index)
         }
 
         val exchangeSequences = mutableListOf<ExchangeSequence>()
@@ -66,12 +66,12 @@ class ShakingNeighbourSolutionGenerator {
             routes[i].addAll(startIndex, sequence)
         }
 
-        result.routes.addAll(routes)
+        resultRoutes.addAll(routes)
 
         return EVRPTWSolution(
-            result.instance,
-            result.routes,
-            Route.calculateTotalDistance(result.routes, result.instance)
+            solution.instance,
+            resultRoutes,
+            Route.calculateTotalDistance(resultRoutes, solution.instance)
         )
     }
 }

@@ -142,6 +142,50 @@ data class EVRPTWSolution(
             }
         }
     }
+
+    fun copyOfRoutes(): MutableList<MutableList<EVRPTWInstance.Node>> {
+        return routes
+            .stream()
+            .map {
+                it
+                    .stream()
+                    .map { node ->
+                        when (node) {
+                            is EVRPTWInstance.Depot -> EVRPTWInstance.Depot(
+                                node.id,
+                                node.name,
+                                node.location.x,
+                                node.location.y,
+                                node.timeWindow.start,
+                                node.timeWindow.end
+                            )
+                            is EVRPTWInstance.Customer -> EVRPTWInstance.Customer(
+                                node.id,
+                                node.name,
+                                node.location.x,
+                                node.location.y,
+                                node.timeWindow.start,
+                                node.timeWindow.end,
+                                node.demand,
+                                node.serviceTime
+                            )
+                            else -> EVRPTWInstance.RechargingStation(
+                                (node as EVRPTWInstance.RechargingStation).id,
+                                node.name,
+                                node.location.x,
+                                node.location.y,
+                                node.timeWindow.start,
+                                node.timeWindow.end,
+                                node.rechargingRate
+                            )
+                        }
+                    }
+                    .collect(Collectors.toList())
+                    .toMutableList()
+            }
+            .collect(Collectors.toList())
+            .toMutableList()
+    }
 }
 
 data class FitnessValue(
