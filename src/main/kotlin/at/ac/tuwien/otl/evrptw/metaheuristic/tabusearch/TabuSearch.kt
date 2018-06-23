@@ -30,7 +30,12 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
             if (evaluateSolution(bestCandidate) < evaluateSolution(overallBestSolution)) {
                 overallBestSolution = bestCandidate
-                log("New local optimum found. Cost: ${overallBestSolution.cost}")
+                log(
+                    "New local optimum found. Cost: ${overallBestSolution.cost}, " +
+                            "Cap-Violation: ${overallBestSolution.fitnessValue.totalCapacityViolation}, " +
+                            "TW-Violation: ${overallBestSolution.fitnessValue.totalTimeWindowViolation}, " +
+                            "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}"
+                )
             }
             iteration++
         }
@@ -46,12 +51,17 @@ class TabuSearch(private val logEnabled: Boolean = true) {
         for (explorer in explorers) {
             solutionsOfAllNeighbourhoods.addAll(explorer.exploreEverySolution(solution))
         }
-        val list = solutionsOfAllNeighbourhoods
-            .filter { !tabuMap.contains(it) && it.fitnessValue.fitness == it.cost } // todo we should accept a "tabu" solution if it is feasible
-        if (list.isEmpty()) {
+        val solutionsNotInTabu = solutionsOfAllNeighbourhoods.filter { !tabuMap.contains(it) }
+
+        val feasibleSolutions = solutionsNotInTabu.filter { it.fitnessValue.fitness == it.cost }
+
+        if (feasibleSolutions.isNotEmpty()) {
+            return feasibleSolutions.sortedBy { it.fitnessValue.fitness }.first()
+        }
+        if (solutionsNotInTabu.isEmpty()) {
             return solution
         }
-        return list.sortedBy { it.fitnessValue.fitness }.first()
+        return solutionsNotInTabu.sortedBy { it.fitnessValue.fitness }.first()
     }
 
     private fun updateTabuMap(solution: EVRPTWSolution, tabuMap: MutableMap<EVRPTWSolution, Int>) {

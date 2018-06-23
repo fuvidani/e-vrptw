@@ -42,6 +42,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             if (feasibilityPhase) {
                 if (!feasible(bestSolution)) {
                     if (i == N_FEAS) {
+                        // TODO this is very important, needs to be implemented
                         addVehicle(bestSolution)
                         i = -1
                     }
