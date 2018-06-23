@@ -3,7 +3,6 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
-import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.util.logging.Logger
 
 /**
@@ -31,7 +30,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
             if (evaluateSolution(bestCandidate) < evaluateSolution(overallBestSolution)) {
                 overallBestSolution = bestCandidate
-                log("New local optimum found")
+                log("New local optimum found. Cost: ${overallBestSolution.cost}")
             }
             iteration++
         }
@@ -41,15 +40,18 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
     private fun bestSolutionOfNeighbourhoods(
         solution: EVRPTWSolution,
-        tabuList: Map<EVRPTWSolution, Int>
+        tabuMap: Map<EVRPTWSolution, Int>
     ): EVRPTWSolution {
         val solutionsOfAllNeighbourhoods = mutableListOf<EVRPTWSolution>()
         for (explorer in explorers) {
             solutionsOfAllNeighbourhoods.addAll(explorer.exploreEverySolution(solution))
         }
-        return solutionsOfAllNeighbourhoods
-            .filter { !tabuList.contains(it) } // todo we should accept a "tabu" solution if it is feasible
-            .sortedBy { it.fitnessValue.fitness }.first()
+        val list = solutionsOfAllNeighbourhoods
+            .filter { !tabuMap.contains(it) && it.fitnessValue.fitness == it.cost } // todo we should accept a "tabu" solution if it is feasible
+        if (list.isEmpty()) {
+            return solution
+        }
+        return list.sortedBy { it.fitnessValue.fitness }.first()
     }
 
     private fun updateTabuMap(solution: EVRPTWSolution, tabuMap: MutableMap<EVRPTWSolution, Int>) {

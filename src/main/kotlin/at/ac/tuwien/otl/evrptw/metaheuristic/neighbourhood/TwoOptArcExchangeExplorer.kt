@@ -1,6 +1,5 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood
 
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.Route
 
@@ -62,9 +61,18 @@ class TwoOptArcExchangeExplorer :
         ).toList()
 
         routes[firstRouteIndex].clear()
-        routes[firstRouteIndex].addAll(newFirstRoute)
+        if (newFirstRoute.size > 2) {
+            routes[firstRouteIndex].addAll(newFirstRoute)
+        } else {
+            routes.removeAt(firstRouteIndex)
+        }
+
         routes[secondRouteIndex].clear()
-        routes[secondRouteIndex].addAll(newSecondRoute)
+        if (newSecondRoute.size > 2) {
+            routes[secondRouteIndex].addAll(newSecondRoute)
+        } else {
+            routes.removeAt(secondRouteIndex)
+        }
         // TODO maybe recalculate costs, violations here?
         return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance))
     }

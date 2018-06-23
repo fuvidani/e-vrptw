@@ -46,7 +46,7 @@ data class EVRPTWSolution(
     }
 
     private fun calculateTotalTimeWindowViolation(): Double {
-        return EVRPTWRouteVerifier.calculateTotalTimeWindowViolation(instance, routes)
+        return Math.max(EVRPTWRouteVerifier.calculateTotalTimeWindowViolation(instance, routes), 0.0)
     }
 
     private fun calculateTotalBatteryCapacityViolation(): Double {

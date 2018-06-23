@@ -1,5 +1,6 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic
 
+/* ktlint-disable no-wildcard-imports */
 import at.ac.tuwien.otl.evrptw.dto.*
 import java.util.Random
 
