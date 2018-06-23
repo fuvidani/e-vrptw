@@ -1,9 +1,6 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic
 
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
-import at.ac.tuwien.otl.evrptw.dto.ExchangeSequence
-import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
+import at.ac.tuwien.otl.evrptw.dto.*
 import java.util.Random
 
 /**
@@ -71,6 +68,10 @@ class ShakingNeighbourSolutionGenerator {
 
         result.routes.addAll(routes)
 
-        return result
+        return EVRPTWSolution(
+            result.instance,
+            result.routes,
+            Route.calculateTotalDistance(result.routes, result.instance)
+        )
     }
 }

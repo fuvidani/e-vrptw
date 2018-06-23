@@ -180,4 +180,17 @@ class Route(
             log.info(message)
         }
     }
+
+    companion object {
+        fun calculateTotalDistance(routes: List<List<EVRPTWInstance.Node>>, instance: EVRPTWInstance): Double {
+            var result = 0.0
+
+            for (route in routes) {
+                for (nodeIndex in 0 until route.size - 1) {
+                    result += instance.getTravelDistance(route[nodeIndex], route[nodeIndex + 1])
+                }
+            }
+            return result
+        }
+    }
 }

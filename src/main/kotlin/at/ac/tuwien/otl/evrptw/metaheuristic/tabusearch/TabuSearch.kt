@@ -48,7 +48,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
         }
         return solutionsOfAllNeighbourhoods
             .filter { !tabuList.contains(it) } // todo we should accept a "tabu" solution if it is feasible
-            .sortedBy { it.cost }[0]
+            .sortedBy { it.fitnessValue.fitness }.first()
     }
 
     private fun updateTabuMap(solution: EVRPTWSolution, tabuMap: MutableMap<EVRPTWSolution, Int>) {

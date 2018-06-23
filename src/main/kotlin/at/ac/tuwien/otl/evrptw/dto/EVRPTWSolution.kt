@@ -1,5 +1,9 @@
 package at.ac.tuwien.otl.evrptw.dto
 
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA
+import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.io.File
 import java.util.stream.Collectors
 
@@ -15,8 +19,65 @@ import java.util.stream.Collectors
 data class EVRPTWSolution(
     val instance: EVRPTWInstance,
     val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
-    var cost: Double
+    val cost: Double
 ) {
+
+    val fitnessValue: FitnessValue = calculateFitnessValue()
+
+    private fun calculateFitnessValue(): FitnessValue {
+        return FitnessValue(
+            cost,
+            calculateTotalCapacityViolation(),
+            calculateTotalTimeWindowViolation(),
+            calculateTotalBatteryCapacityViolation()
+        )
+    }
+
+    private fun calculateTotalCapacityViolation(): Double {
+        var result = 0.0
+
+        for (route in routes) {
+            val demandSum = route.stream().filter { it is EVRPTWInstance.Customer }
+                .mapToDouble { (it as EVRPTWInstance.Customer).demand }.sum()
+            result += Math.max(demandSum - instance.vehicleCapacity, 0.0)
+        }
+
+        return result
+    }
+
+    private fun calculateTotalTimeWindowViolation(): Double {
+        return EVRPTWRouteVerifier.calculateTotalTimeWindowViolation(instance, routes)
+    }
+
+    private fun calculateTotalBatteryCapacityViolation(): Double {
+        var result = 0.0
+
+        for (route in routes) {
+            var batteryViolation = 0.0
+            var lastNotCustomerIndex = 0
+            for (nodeIndex in 0 until route.size) {
+                if (route[nodeIndex] is EVRPTWInstance.Depot || route[nodeIndex] is EVRPTWInstance.RechargingStation) {
+                    val currentViolation = batteryDemandTo(route, lastNotCustomerIndex, nodeIndex)
+                    batteryViolation += Math.max(currentViolation - instance.vehicleEnergyCapacity, 0.0)
+                    lastNotCustomerIndex = nodeIndex
+                }
+            }
+            result += batteryViolation
+        }
+
+        return result
+    }
+
+    private fun batteryDemandTo(route: List<EVRPTWInstance.Node>, startIndex: Int, nodeIndex: Int): Double {
+        if (startIndex == nodeIndex) {
+            return 0.0
+        }
+        return batteryDemandTo(route, startIndex, nodeIndex - 1) + instance.getTravelDistance(
+            route[nodeIndex - 1],
+            route[nodeIndex]
+        ) * instance.vehicleEnergyConsumption
+    }
+
     /**
      * Copy constructor.
      */
@@ -81,4 +142,14 @@ data class EVRPTWSolution(
             }
         }
     }
+}
+
+data class FitnessValue(
+    val totalTravelDistance: Double,
+    val totalCapacityViolation: Double,
+    val totalTimeWindowViolation: Double,
+    val totalBatteryCapacityViolation: Double
+) {
+    val fitness =
+        totalTravelDistance + (ALPHA * totalCapacityViolation) + (BETA * totalTimeWindowViolation) + (GAMMA * totalBatteryCapacityViolation)
 }

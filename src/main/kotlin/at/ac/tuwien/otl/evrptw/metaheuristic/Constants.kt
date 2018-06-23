@@ -19,5 +19,8 @@ class Constants private constructor() {
         const val COOLING_FACTOR = 0.9
         const val TABU_TENURE_MIN = 15
         const val TABU_TENURE_MAX = 30
+        const val ALPHA = 10
+        const val BETA = 10
+        const val GAMMA = 10
     }
 }
