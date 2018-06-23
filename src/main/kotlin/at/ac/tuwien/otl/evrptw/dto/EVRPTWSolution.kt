@@ -25,11 +25,12 @@ data class EVRPTWSolution(
     val fitnessValue: FitnessValue = calculateFitnessValue()
 
     private fun calculateFitnessValue(): FitnessValue {
+        val violations = EVRPTWRouteVerifier.calculateViolations(instance, routes)
         return FitnessValue(
             cost,
-            calculateTotalCapacityViolation(),
-            calculateTotalTimeWindowViolation(),
-            calculateTotalBatteryCapacityViolation()
+            violations.capacityViolation,
+            violations.timeWindowViolation,
+            violations.batteryCapacityViolation
         )
     }
 
@@ -37,8 +38,11 @@ data class EVRPTWSolution(
         var result = 0.0
 
         for (route in routes) {
-            val demandSum = route.stream().filter { it is EVRPTWInstance.Customer }
-                .mapToDouble { (it as EVRPTWInstance.Customer).demand }.sum()
+            val demandSum = route
+                .stream()
+                .filter { it is EVRPTWInstance.Customer }
+                .mapToDouble { (it as EVRPTWInstance.Customer).demand }
+                .sum()
             result += Math.max(demandSum - instance.vehicleCapacity, 0.0)
         }
 
@@ -197,3 +201,9 @@ data class FitnessValue(
     val fitness =
         totalTravelDistance + (ALPHA * totalCapacityViolation) + (BETA * totalTimeWindowViolation) + (GAMMA * totalBatteryCapacityViolation)
 }
+
+data class Violations(
+    val capacityViolation: Double,
+    val timeWindowViolation: Double,
+    val batteryCapacityViolation: Double
+)

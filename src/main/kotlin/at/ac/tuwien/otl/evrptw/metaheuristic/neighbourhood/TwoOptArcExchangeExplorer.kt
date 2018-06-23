@@ -61,18 +61,18 @@ class TwoOptArcExchangeExplorer :
         ).toList()
 
         routes[firstRouteIndex].clear()
-        if (newFirstRoute.size > 2) {
-            routes[firstRouteIndex].addAll(newFirstRoute)
-        } else {
-            routes.removeAt(firstRouteIndex)
-        }
+        routes[firstRouteIndex].addAll(newFirstRoute)
 
         routes[secondRouteIndex].clear()
-        if (newSecondRoute.size > 2) {
-            routes[secondRouteIndex].addAll(newSecondRoute)
-        } else {
+        routes[secondRouteIndex].addAll(newSecondRoute)
+
+        if (newFirstRoute.size <= 2) {
+            routes.removeAt(firstRouteIndex)
+        }
+        if (newSecondRoute.size <= 2) {
             routes.removeAt(secondRouteIndex)
         }
+
         // TODO maybe recalculate costs, violations here?
         return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance))
     }

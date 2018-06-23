@@ -12,8 +12,8 @@ package at.ac.tuwien.otl.evrptw.metaheuristic
 class Constants private constructor() {
 
     companion object {
-        const val N_DIST = 1
-        const val N_FEAS = 500
+        const val N_DIST = 0
+        const val N_FEAS = 5
         const val N_TABU = 100
         const val N_PENALTY = 2
         const val COOLING_FACTOR = 0.9
