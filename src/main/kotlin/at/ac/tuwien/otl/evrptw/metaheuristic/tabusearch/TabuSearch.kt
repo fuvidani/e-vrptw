@@ -1,15 +1,14 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 
+/* ktlint-disable no-wildcard-imports */
 import at.ac.tuwien.otl.evrptw.Executor
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteExchangeExplorer
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteRelocateExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.INeighbourhoodExplorerCallable
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.InterIntraRouteExchangeExplorerCallable
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.StationInReExplorerCallable
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.TwoOptArcExchangeExplorerCallable
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.*
 import java.util.logging.Logger
 import java.util.stream.Collectors
 
@@ -58,11 +57,6 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
         val solutionsNotInTabu = solutionsOfAllNeighbourhoods.filter { !tabuMap.contains(it) }
 
-        /*val feasibleSolutions = solutionsNotInTabu.filter { it.fitnessValue.fitness == it.cost }
-
-        if (feasibleSolutions.isNotEmpty()) {
-            return feasibleSolutions.sortedBy { it.fitnessValue.fitness }.first()
-        }*/
         if (solutionsNotInTabu.isEmpty()) {
             log("NO SOLUTIONS AVAILABLE THAT ARE EITHER FEASIBLE OR NOT IN TABU LIST")
             return solution
@@ -75,6 +69,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
         callableList.add(TwoOptArcExchangeExplorerCallable(solution, TwoOptArcExchangeExplorer()))
         callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
         callableList.add(InterIntraRouteExchangeExplorerCallable(solution, InterIntraRouteExchangeExplorer()))
+        callableList.add(InterIntraRouteRelocateExplorerCallable(solution, InterIntraRouteRelocateExplorer()))
         val results = Executor.getExecutorService().invokeAll(callableList)
         return results.stream().flatMap { it.get().stream() }.collect(Collectors.toList()).toList()
     }

@@ -73,15 +73,6 @@ class TwoOptArcExchangeExplorer :
             routes.removeAt(secondRouteIndex)
         }
 
-        // TODO maybe recalculate costs, violations here?
         return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance))
-    }
-
-    private fun calculateTotalCostBasedOnOtherSolution(
-        baselineSolution: EVRPTWSolution,
-        newSolution: EVRPTWSolution
-    ): Double {
-        // ...
-        return baselineSolution.cost
     }
 }

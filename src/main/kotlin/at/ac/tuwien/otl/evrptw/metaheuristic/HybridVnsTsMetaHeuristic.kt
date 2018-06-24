@@ -31,6 +31,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
 
     override fun improveSolution(evrptwSolution: EVRPTWSolution): EVRPTWSolution {
         temperature = Main.instanceToInitTemperatureMap[evrptwSolution.instance.name]!!
+        var bestFeasibleSolution = evrptwSolution
         var bestSolution = evrptwSolution
         var k = 1
         var i = 0
@@ -42,6 +43,9 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
 
             if (acceptSimulatedAnnealing(optimizedNewSolution, bestSolution)) {
                 bestSolution = optimizedNewSolution
+                if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
+                    bestFeasibleSolution = optimizedNewSolution
+                }
                 k = 1
             } else {
                 k = (k % NeighbourhoodStructure.STRUCTURES.size) + 1
@@ -62,7 +66,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             i++
         }
 
-        return bestSolution
+        return bestFeasibleSolution
     }
 
     private fun acceptSimulatedAnnealing(optimizedNewSolution: EVRPTWSolution, bestSolution: EVRPTWSolution): Boolean {
