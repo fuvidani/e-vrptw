@@ -1,9 +1,13 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 
+import at.ac.tuwien.otl.evrptw.Executor
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.INeighbourhoodExplorerCallable
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.TwoOptArcExchangeExplorerCallable
 import java.util.logging.Logger
+import java.util.stream.Collectors
 
 /**
  * <h4>About this class</h4>
@@ -16,7 +20,6 @@ import java.util.logging.Logger
  */
 class TabuSearch(private val logEnabled: Boolean = true) {
     private val log: Logger = Logger.getLogger(this.javaClass.name)
-    private val explorers = listOf(TwoOptArcExchangeExplorer())
 
     fun apply(solution: EVRPTWSolution): EVRPTWSolution {
         var overallBestSolution = EVRPTWSolution(solution) // create deep copy
@@ -47,10 +50,8 @@ class TabuSearch(private val logEnabled: Boolean = true) {
         solution: EVRPTWSolution,
         tabuMap: Map<EVRPTWSolution, Int>
     ): EVRPTWSolution {
-        val solutionsOfAllNeighbourhoods = mutableListOf<EVRPTWSolution>()
-        for (explorer in explorers) {
-            solutionsOfAllNeighbourhoods.addAll(explorer.exploreEverySolution(solution))
-        }
+        val solutionsOfAllNeighbourhoods = parallelExploreNeighbourhoods(solution)
+
         val solutionsNotInTabu = solutionsOfAllNeighbourhoods.filter { !tabuMap.contains(it) }
 
         val feasibleSolutions = solutionsNotInTabu.filter { it.fitnessValue.fitness == it.cost }
@@ -62,6 +63,14 @@ class TabuSearch(private val logEnabled: Boolean = true) {
             return solution
         }
         return solutionsNotInTabu.sortedBy { it.fitnessValue.fitness }.first()
+    }
+
+    private fun parallelExploreNeighbourhoods(solution: EVRPTWSolution): List<EVRPTWSolution> {
+        val callableList = mutableListOf<INeighbourhoodExplorerCallable<EVRPTWSolution>>()
+        callableList.add(TwoOptArcExchangeExplorerCallable(solution, TwoOptArcExchangeExplorer()))
+        // callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
+        val results = Executor.getExecutorService().invokeAll(callableList)
+        return results.stream().flatMap { it.get().stream() }.collect(Collectors.toList()).toList()
     }
 
     private fun updateTabuMap(solution: EVRPTWSolution, tabuMap: MutableMap<EVRPTWSolution, Int>) {
