@@ -248,7 +248,7 @@ public class EVRPTWRouteVerifier {
         return new Violations(capacityViolations, timeWindowViolations, batteryCapacityViolations);
     }
 
-    private static Violations calculateViolationOfRoute(EVRPTWInstance instance, List<Node> route) {
+    public static Violations calculateViolationOfRoute(EVRPTWInstance instance, List<Node> route) {
         int from = 1;
         int to = route.size() - 1;
 

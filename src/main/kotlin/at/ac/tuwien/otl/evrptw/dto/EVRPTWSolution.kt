@@ -25,12 +25,24 @@ data class EVRPTWSolution(
     val fitnessValue: FitnessValue = calculateFitnessValue()
 
     private fun calculateFitnessValue(): FitnessValue {
-        val violations = EVRPTWRouteVerifier.calculateViolations(instance, routes)
+        // val violations = EVRPTWRouteVerifier.calculateViolations(instance, routes)
+        var capacityViolations = 0.0
+        var timeWindowViolations = 0.0
+        var batteryCapacityViolations = 0.0
+        val routeViolations = mutableListOf<Violations>()
+        for (route in routes) {
+            val violations = EVRPTWRouteVerifier.calculateViolationOfRoute(instance, route)
+            capacityViolations += violations.capacityViolation
+            timeWindowViolations += violations.timeWindowViolation
+            batteryCapacityViolations += violations.batteryCapacityViolation
+            routeViolations.add(violations)
+        }
         return FitnessValue(
             cost,
-            violations.capacityViolation,
-            violations.timeWindowViolation,
-            violations.batteryCapacityViolation
+            capacityViolations,
+            timeWindowViolations,
+            batteryCapacityViolations,
+            routeViolations
         )
     }
 
@@ -190,13 +202,50 @@ data class EVRPTWSolution(
             .collect(Collectors.toList())
             .toMutableList()
     }
+
+    fun copyOfRoute(route: List<EVRPTWInstance.Node>): MutableList<EVRPTWInstance.Node> {
+        return route.stream().map { node ->
+            when (node) {
+                is EVRPTWInstance.Depot -> EVRPTWInstance.Depot(
+                    node.id,
+                    node.name,
+                    node.location.x,
+                    node.location.y,
+                    node.timeWindow.start,
+                    node.timeWindow.end
+                )
+                is EVRPTWInstance.Customer -> EVRPTWInstance.Customer(
+                    node.id,
+                    node.name,
+                    node.location.x,
+                    node.location.y,
+                    node.timeWindow.start,
+                    node.timeWindow.end,
+                    node.demand,
+                    node.serviceTime
+                )
+                else -> EVRPTWInstance.RechargingStation(
+                    (node as EVRPTWInstance.RechargingStation).id,
+                    node.name,
+                    node.location.x,
+                    node.location.y,
+                    node.timeWindow.start,
+                    node.timeWindow.end,
+                    node.rechargingRate
+                )
+            }
+        }
+            .collect(Collectors.toList())
+            .toMutableList()
+    }
 }
 
 data class FitnessValue(
     val totalTravelDistance: Double,
     val totalCapacityViolation: Double,
     val totalTimeWindowViolation: Double,
-    val totalBatteryCapacityViolation: Double
+    val totalBatteryCapacityViolation: Double,
+    val routeViolations: List<Violations>
 ) {
     val fitness =
         totalTravelDistance + (ALPHA * totalCapacityViolation) + (BETA * totalTimeWindowViolation) + (GAMMA * totalBatteryCapacityViolation)

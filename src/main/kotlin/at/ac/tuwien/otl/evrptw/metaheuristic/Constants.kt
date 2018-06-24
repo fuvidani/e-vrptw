@@ -12,15 +12,15 @@ package at.ac.tuwien.otl.evrptw.metaheuristic
 class Constants private constructor() {
 
     companion object {
-        const val N_DIST = 5
+        const val N_DIST = 10
         const val N_FEAS = 5
-        const val N_TABU = 100
+        const val N_TABU = 50
         const val N_PENALTY = 2
         const val COOLING_FACTOR = 0.9
         const val TABU_TENURE_MIN = 15
         const val TABU_TENURE_MAX = 30
-        const val ALPHA = 10
-        const val BETA = 10
-        const val GAMMA = 10
+        const val ALPHA = 1
+        const val BETA = 1
+        const val GAMMA = 1
     }
 }

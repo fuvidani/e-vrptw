@@ -56,11 +56,11 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
         val solutionsNotInTabu = solutionsOfAllNeighbourhoods.filter { !tabuMap.contains(it) }
 
-        val feasibleSolutions = solutionsNotInTabu.filter { it.fitnessValue.fitness == it.cost }
+        /*val feasibleSolutions = solutionsNotInTabu.filter { it.fitnessValue.fitness == it.cost }
 
         if (feasibleSolutions.isNotEmpty()) {
             return feasibleSolutions.sortedBy { it.fitnessValue.fitness }.first()
-        }
+        }*/
         if (solutionsNotInTabu.isEmpty()) {
             log("NO SOLUTIONS AVAILABLE THAT ARE EITHER FEASIBLE OR NOT IN TABU LIST")
             return solution
