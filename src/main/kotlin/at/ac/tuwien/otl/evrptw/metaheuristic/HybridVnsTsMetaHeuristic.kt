@@ -5,13 +5,22 @@ import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
 import at.ac.tuwien.otl.evrptw.dto.Route
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA_DEFAULT
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.COOLING_FACTOR
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.NO_CHANGE_THRESHOLD
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_DIST
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_FEAS
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.PARAM_INCREASE_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch.TabuSearch
 import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.util.Random
 import java.util.logging.Logger
+import kotlin.streams.toList
 
 /**
  * <h4>About this class</h4>
@@ -27,10 +36,14 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     private val neighbourSolutionGenerator = ShakingNeighbourSolutionGenerator()
     private val tabuSearch = TabuSearch(logEnabled)
     private val random = Random(java.lang.Double.doubleToLongBits(Math.random()))
+    private val lastSavedSolutions = mutableListOf<EVRPTWSolution>()
     private var temperature = 0.0
+    private var thresholdCounter = 0
 
     override fun improveSolution(evrptwSolution: EVRPTWSolution): EVRPTWSolution {
         temperature = Main.instanceToInitTemperatureMap[evrptwSolution.instance.name]!!
+        lastSavedSolutions.clear()
+        thresholdCounter = 0
         var bestFeasibleSolution = evrptwSolution
         var bestSolution = evrptwSolution
         var k = 1
@@ -40,6 +53,11 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
         while (feasibilityPhase || (!feasibilityPhase && i < N_DIST)) {
             val newSolution = neighbourSolutionGenerator.generateRandomPoint(bestSolution, k)
             val optimizedNewSolution = tabuSearch.apply(newSolution)
+            lastSavedSolutions.add(optimizedNewSolution)
+            if (lastSavedSolutions.size > NO_CHANGE_THRESHOLD) {
+                lastSavedSolutions.removeAt(0)
+            }
+            adjustParameters()
 
             if (acceptSimulatedAnnealing(optimizedNewSolution, bestSolution)) {
                 bestSolution = optimizedNewSolution
@@ -65,8 +83,33 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             }
             i++
         }
-
         return bestFeasibleSolution
+    }
+
+    private fun adjustParameters() {
+        val lastSolution = lastSavedSolutions.last()
+        if (lastSolution.fitnessValue.fitness == lastSolution.cost) {
+            thresholdCounter++
+        } else {
+            thresholdCounter--
+        }
+        if (thresholdCounter == NO_CHANGE_THRESHOLD) {
+            ALPHA = ALPHA_DEFAULT
+            BETA = BETA_DEFAULT
+            GAMMA = GAMMA_DEFAULT
+            log("PARAMETERS SET BACK TO DEFAULT = ($ALPHA, $BETA, $GAMMA)")
+        } else if (thresholdCounter == -NO_CHANGE_THRESHOLD) {
+            val numberOfCapacityViolations =
+                lastSavedSolutions.stream().filter { it.fitnessValue.totalCapacityViolation > 0.0 }.toList().size
+            val numberOfTimeWindowViolations =
+                lastSavedSolutions.stream().filter { it.fitnessValue.totalTimeWindowViolation > 0.0 }.toList().size
+            val numberOfBatteryCapacityViolations =
+                lastSavedSolutions.stream().filter { it.fitnessValue.totalBatteryCapacityViolation > 0.0 }.toList().size
+            ALPHA += PARAM_INCREASE_RATE * numberOfCapacityViolations
+            BETA += PARAM_INCREASE_RATE * numberOfTimeWindowViolations
+            GAMMA += PARAM_INCREASE_RATE * numberOfBatteryCapacityViolations
+            log("PARAMETERS INCREASED = ($ALPHA, $BETA, $GAMMA)")
+        }
     }
 
     private fun acceptSimulatedAnnealing(optimizedNewSolution: EVRPTWSolution, bestSolution: EVRPTWSolution): Boolean {
