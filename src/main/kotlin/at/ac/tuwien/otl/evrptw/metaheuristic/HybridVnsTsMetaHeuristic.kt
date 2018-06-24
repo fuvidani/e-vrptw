@@ -1,5 +1,6 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic
 
+import at.ac.tuwien.otl.evrptw.Main
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
@@ -26,9 +27,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     private val neighbourSolutionGenerator = ShakingNeighbourSolutionGenerator()
     private val tabuSearch = TabuSearch(logEnabled)
     private val random = Random(java.lang.Double.doubleToLongBits(Math.random()))
-    private var temperature = 900.0
+    private var temperature = 0.0
 
     override fun improveSolution(evrptwSolution: EVRPTWSolution): EVRPTWSolution {
+        temperature = Main.instanceToInitTemperatureMap[evrptwSolution.instance.name]!!
         var bestSolution = evrptwSolution
         var k = 1
         var i = 0
@@ -72,8 +74,9 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
                 val exponent =
                     (-Math.abs(optimizedNewSolution.fitnessValue.fitness - bestSolution.fitnessValue.fitness)) / temperature
                 val probabilityAccept = Math.exp(exponent)
-                log("SA accept probability: $probabilityAccept")
-                random.nextDouble() < probabilityAccept
+                val randomNumber = random.nextDouble()
+                log("SA accept probability: $randomNumber < $probabilityAccept")
+                randomNumber < probabilityAccept
             } else {
                 false
             }
