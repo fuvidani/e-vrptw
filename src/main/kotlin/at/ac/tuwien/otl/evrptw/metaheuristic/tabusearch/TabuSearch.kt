@@ -3,8 +3,10 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 import at.ac.tuwien.otl.evrptw.Executor
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.INeighbourhoodExplorerCallable
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.StationInReExplorerCallable
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.TwoOptArcExchangeExplorerCallable
 import java.util.logging.Logger
 import java.util.stream.Collectors
@@ -60,6 +62,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
             return feasibleSolutions.sortedBy { it.fitnessValue.fitness }.first()
         }
         if (solutionsNotInTabu.isEmpty()) {
+            log("NO SOLUTIONS AVAILABLE THAT ARE EITHER FEASIBLE OR NOT IN TABU LIST")
             return solution
         }
         return solutionsNotInTabu.sortedBy { it.fitnessValue.fitness }.first()
@@ -68,7 +71,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
     private fun parallelExploreNeighbourhoods(solution: EVRPTWSolution): List<EVRPTWSolution> {
         val callableList = mutableListOf<INeighbourhoodExplorerCallable<EVRPTWSolution>>()
         callableList.add(TwoOptArcExchangeExplorerCallable(solution, TwoOptArcExchangeExplorer()))
-        // callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
+        callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
         val results = Executor.getExecutorService().invokeAll(callableList)
         return results.stream().flatMap { it.get().stream() }.collect(Collectors.toList()).toList()
     }
