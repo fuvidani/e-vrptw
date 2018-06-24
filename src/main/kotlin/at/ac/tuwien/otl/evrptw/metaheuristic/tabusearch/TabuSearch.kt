@@ -3,9 +3,11 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 import at.ac.tuwien.otl.evrptw.Executor
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteExchangeExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.INeighbourhoodExplorerCallable
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.InterIntraRouteExchangeExplorerCallable
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.StationInReExplorerCallable
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.TwoOptArcExchangeExplorerCallable
 import java.util.logging.Logger
@@ -72,6 +74,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
         val callableList = mutableListOf<INeighbourhoodExplorerCallable<EVRPTWSolution>>()
         callableList.add(TwoOptArcExchangeExplorerCallable(solution, TwoOptArcExchangeExplorer()))
         callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
+        callableList.add(InterIntraRouteExchangeExplorerCallable(solution, InterIntraRouteExchangeExplorer()))
         val results = Executor.getExecutorService().invokeAll(callableList)
         return results.stream().flatMap { it.get().stream() }.collect(Collectors.toList()).toList()
     }
