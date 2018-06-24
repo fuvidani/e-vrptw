@@ -20,12 +20,14 @@ class StationInReExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
         for (routeIndex in 0 until initialSolution.routes.size) {
             val route = initialSolution.routes[routeIndex]
             for (nodeIndex in 1 until route.size) {
-                if (route[nodeIndex] is EVRPTWInstance.RechargingStation) {
+                if (route[nodeIndex] is EVRPTWInstance.RechargingStation && route.size > 3) {
                     result.add(performStationRemoval(initialSolution, routeIndex, nodeIndex))
                 } else {
-                    for (station in initialSolution.instance.rechargingStations) {
-                        val neighbourSolution = performStationInsertion(initialSolution, routeIndex, nodeIndex, station)
-                        result.add(neighbourSolution)
+                    if (route[nodeIndex - 1] !is EVRPTWInstance.RechargingStation) {
+                        for (station in initialSolution.instance.rechargingStations) {
+                            val neighbourSolution = performStationInsertion(initialSolution, routeIndex, nodeIndex, station)
+                            result.add(neighbourSolution)
+                        }
                     }
                 }
             }
@@ -41,9 +43,9 @@ class StationInReExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
         val routes = initialSolution.copyOfRoutes()
         routes[routeIndex].removeAt(nodeIndex)
         return EVRPTWSolution(
-            initialSolution.instance,
-            routes,
-            Route.calculateTotalDistance(routes, initialSolution.instance)
+                initialSolution.instance,
+                routes,
+                Route.calculateTotalDistance(routes, initialSolution.instance)
         )
     }
 
@@ -55,20 +57,20 @@ class StationInReExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
     ): EVRPTWSolution {
         val routes = initialSolution.copyOfRoutes()
         val stationToInsert = EVRPTWInstance.RechargingStation(
-            station.id,
-            station.name,
-            station.location.x,
-            station.location.y,
-            station.timeWindow.start,
-            station.timeWindow.end,
-            station.rechargingRate
+                station.id,
+                station.name,
+                station.location.x,
+                station.location.y,
+                station.timeWindow.start,
+                station.timeWindow.end,
+                station.rechargingRate
         )
 
         routes[routeIndex].add(nodeIndex, stationToInsert)
         return EVRPTWSolution(
-            initialSolution.instance,
-            routes,
-            Route.calculateTotalDistance(routes, initialSolution.instance)
+                initialSolution.instance,
+                routes,
+                Route.calculateTotalDistance(routes, initialSolution.instance)
         )
     }
 }

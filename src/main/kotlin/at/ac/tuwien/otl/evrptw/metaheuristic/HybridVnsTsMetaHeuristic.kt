@@ -15,7 +15,8 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA_DEFAULT
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.NO_CHANGE_THRESHOLD
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_DIST
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_FEAS
-import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.PARAM_INCREASE_RATE
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_DECREASE_RATE
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_INCREASE_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch.TabuSearch
 import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.util.Random
@@ -51,6 +52,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
         var feasibilityPhase = true
 
         while (feasibilityPhase || (!feasibilityPhase && i < N_DIST)) {
+            println("VNS Iteration: $i")
             val newSolution = neighbourSolutionGenerator.generateRandomPoint(bestSolution, k)
             val optimizedNewSolution = tabuSearch.apply(newSolution)
             lastSavedSolutions.add(optimizedNewSolution)
@@ -62,6 +64,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             if (acceptSimulatedAnnealing(optimizedNewSolution, bestSolution)) {
                 bestSolution = optimizedNewSolution
                 if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
+                    log("New best feasible solution with cost ${optimizedNewSolution.cost}")
                     bestFeasibleSolution = optimizedNewSolution
                 }
                 k = 1
@@ -94,10 +97,11 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             thresholdCounter--
         }
         if (thresholdCounter == NO_CHANGE_THRESHOLD) {
-            ALPHA = ALPHA_DEFAULT
-            BETA = BETA_DEFAULT
-            GAMMA = GAMMA_DEFAULT
-            log("PARAMETERS SET BACK TO DEFAULT = ($ALPHA, $BETA, $GAMMA)")
+            ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else ALPHA - VIOLATION_FACTOR_DECREASE_RATE
+            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else BETA - VIOLATION_FACTOR_DECREASE_RATE
+            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else GAMMA - VIOLATION_FACTOR_DECREASE_RATE
+            thresholdCounter = 0
+            log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA)")
         } else if (thresholdCounter == -NO_CHANGE_THRESHOLD) {
             val numberOfCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalCapacityViolation > 0.0 }.toList().size
@@ -105,10 +109,11 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalTimeWindowViolation > 0.0 }.toList().size
             val numberOfBatteryCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalBatteryCapacityViolation > 0.0 }.toList().size
-            ALPHA += PARAM_INCREASE_RATE * numberOfCapacityViolations
-            BETA += PARAM_INCREASE_RATE * numberOfTimeWindowViolations
-            GAMMA += PARAM_INCREASE_RATE * numberOfBatteryCapacityViolations
-            log("PARAMETERS INCREASED = ($ALPHA, $BETA, $GAMMA)")
+            ALPHA += VIOLATION_FACTOR_INCREASE_RATE * numberOfCapacityViolations
+            BETA += VIOLATION_FACTOR_INCREASE_RATE * numberOfTimeWindowViolations
+            GAMMA += VIOLATION_FACTOR_INCREASE_RATE * numberOfBatteryCapacityViolations
+            thresholdCounter = 0
+            log("++ VIOLATION FACTORS INCREASED = ($ALPHA, $BETA, $GAMMA)")
         }
     }
 

@@ -38,6 +38,9 @@ class ShakingNeighbourSolutionGenerator {
 
         for (route in routes) {
             val upperBound = Math.min(neighbourhoodStructure.maxVertices, route.size - 2)
+            if (upperBound == 0) {
+                println("ERROR UPPER BOUND. Route: $route")
+            }
             val numberOfSuccessiveVertices = if (upperBound == 1) {
                 1
             } else {
