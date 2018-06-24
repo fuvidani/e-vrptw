@@ -18,6 +18,8 @@ package at.ac.tuwien.otl.evrptw.verifier;
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance;
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance.Node;
+import at.ac.tuwien.otl.evrptw.dto.Violations;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -100,8 +102,8 @@ public class EVRPTWRouteVerifier {
             timeInNode = instance.getServiceTime(arriveAtNode);
             if(instance.isRechargingStation(arriveAtNode)) {
                 double refuelTime =
-                    (instance.getVehicleEnergyCapacity() - y) * // used fuel
-                        instance.getRechargingRate(arriveAtNode); // refill rate
+                        (instance.getVehicleEnergyCapacity() - y) * // used fuel
+                                instance.getRechargingRate(arriveAtNode); // refill rate
 
                 timeInNode = refuelTime;
 
@@ -130,14 +132,14 @@ public class EVRPTWRouteVerifier {
         boolean infeasible = qInf > 0.0 || TW > 0.0 || yInfeasible > 0.0;
         if(detailedMode) {
             System.out.println(
-                String.format(Locale.ENGLISH,
-                    "Route %d: %s" + "\n" +
-                        "- load:\t\t%4.0f" + "\n" +
-                        "- distance:\t%7.3f" + "\n" +
-                        "- duration:\t%7.3f" + "\n" +
-                        "- violations:\t %s",
-                    id, route.toString(), q, distance, D, (infeasible) ? "YES" : "none"
-                ));
+                    String.format(Locale.ENGLISH,
+                            "Route %d: %s" + "\n" +
+                                    "- load:\t\t%4.0f" + "\n" +
+                                    "- distance:\t%7.3f" + "\n" +
+                                    "- duration:\t%7.3f" + "\n" +
+                                    "- violations:\t %s",
+                            id, route.toString(), q, distance, D, (infeasible) ? "YES" : "none"
+                    ));
             if(infeasible) {
                 if(qInf > 0.0)
                     System.out.println(String.format(Locale.ENGLISH, "-- load:\t%4.0f", qInf));
@@ -150,5 +152,174 @@ public class EVRPTWRouteVerifier {
         if(infeasible)
             return Double.POSITIVE_INFINITY;
         else return distance;
+    }
+
+    public static double calculateTotalTimeWindowViolation(final EVRPTWInstance instance, final List<List<Node>> routes) {
+        double c = 0.0;
+        for (int i = 0; i < routes.size(); i++) {
+            c = c + calculateTimeWindowViolation(instance, routes.get(i), i + 1);
+        }
+        return c;
+    }
+
+    private static double calculateTimeWindowViolation(EVRPTWInstance instance, List<Node> route, int id) {
+        int from = 1;
+        int to = route.size() - 1;
+
+        Node prevNode = route.get(0);
+
+        double q = 0.0;
+        double distance = 0.0;
+
+        double y = instance.getVehicleEnergyCapacity();
+        double yInfeasible = 0.0;
+
+        double ST = instance.getServiceTime(prevNode);
+        double D = ST;
+        double TW = 0.0;
+        double E = instance.getTimewindow(prevNode).getStart();
+        double L = instance.getTimewindow(prevNode).getEnd();
+        double deltaWT = 0.0;
+        double deltaTW = 0.0;
+
+        for (int i = from; i <= to; i++) {
+            Node arriveAtNode = route.get(i);
+
+            double timeInNode = 0.0;
+            double travelTime = 0.0;
+            double delta = 0.0;
+
+            travelTime = instance.getTravelTime(prevNode, arriveAtNode);
+            distance = distance + instance.getTravelDistance(prevNode, arriveAtNode);
+
+            delta = D - TW + travelTime;
+
+            double travelDistance = instance.getTravelDistance(prevNode, arriveAtNode);
+            y -= (travelDistance * instance.getVehicleEnergyConsumption());
+            if (y < 0.0) {
+                yInfeasible -= y;
+                y = 0.0;
+            }
+
+            deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).getStart() - delta - L);
+            deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).getEnd());
+
+            timeInNode = instance.getServiceTime(arriveAtNode);
+            if (instance.isRechargingStation(arriveAtNode)) {
+                double refuelTime =
+                        (instance.getVehicleEnergyCapacity() - y) * // used fuel
+                                instance.getRechargingRate(arriveAtNode); // refill rate
+
+                timeInNode = refuelTime;
+
+                y = instance.getVehicleEnergyCapacity();
+            } else {
+                // do nothing
+            }
+
+            if (instance.isRechargingStation(arriveAtNode)) {
+                delta += timeInNode;
+                deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).getStart() - delta - L);
+                deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).getEnd());
+            } else
+                q = q + instance.getDemand(arriveAtNode);
+
+            D = D + timeInNode + deltaWT + travelTime;
+            ST += timeInNode;
+            TW = TW + deltaTW;
+            E = Math.max(instance.getTimewindow(arriveAtNode).getStart() - delta, E) - deltaWT;
+            L = Math.min(instance.getTimewindow(arriveAtNode).getEnd() - delta, L) + deltaTW;
+
+            prevNode = arriveAtNode;
+        }
+        return TW;
+    }
+
+    public static Violations calculateViolations(final EVRPTWInstance instance, final List<List<Node>> routes) {
+        double capacityViolations = 0.0;
+        double timeWindowViolations = 0.0;
+        double batteryCapacityViolations = 0.0;
+        for (int i = 0; i < routes.size(); i++) {
+            final Violations violations = calculateViolationOfRoute(instance, routes.get(i));
+            capacityViolations += violations.getCapacityViolation();
+            timeWindowViolations += violations.getTimeWindowViolation();
+            batteryCapacityViolations += violations.getBatteryCapacityViolation();
+        }
+        return new Violations(capacityViolations, timeWindowViolations, batteryCapacityViolations);
+    }
+
+    public static Violations calculateViolationOfRoute(EVRPTWInstance instance, List<Node> route) {
+        int from = 1;
+        int to = route.size() - 1;
+
+        Node prevNode = route.get(0);
+
+        double q = 0.0;
+        double distance = 0.0;
+
+        double y = instance.getVehicleEnergyCapacity();
+        double yInfeasible = 0.0;
+
+        double ST = instance.getServiceTime(prevNode);
+        double D = ST;
+        double TW = 0.0;
+        double E = instance.getTimewindow(prevNode).getStart();
+        double L = instance.getTimewindow(prevNode).getEnd();
+        double deltaWT = 0.0;
+        double deltaTW = 0.0;
+
+        for (int i = from; i <= to; i++) {
+            Node arriveAtNode = route.get(i);
+
+            double timeInNode = 0.0;
+            double travelTime = 0.0;
+            double delta = 0.0;
+
+            travelTime = instance.getTravelTime(prevNode, arriveAtNode);
+            distance = distance + instance.getTravelDistance(prevNode, arriveAtNode);
+
+            delta = D - TW + travelTime;
+
+            double travelDistance = instance.getTravelDistance(prevNode, arriveAtNode);
+            y -= (travelDistance * instance.getVehicleEnergyConsumption());
+            if (y < 0.0) {
+                yInfeasible -= y;
+                y = 0.0;
+            }
+
+            deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).getStart() - delta - L);
+            deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).getEnd());
+
+            timeInNode = instance.getServiceTime(arriveAtNode);
+            if (instance.isRechargingStation(arriveAtNode)) {
+                double refuelTime =
+                        (instance.getVehicleEnergyCapacity() - y) * // used fuel
+                                instance.getRechargingRate(arriveAtNode); // refill rate
+
+                timeInNode = refuelTime;
+
+                y = instance.getVehicleEnergyCapacity();
+            } else {
+                // do nothing
+            }
+
+            if (instance.isRechargingStation(arriveAtNode)) {
+                delta += timeInNode;
+                deltaWT = Math.max(0, instance.getTimewindow(arriveAtNode).getStart() - delta - L);
+                deltaTW = Math.max(0, E + delta - instance.getTimewindow(arriveAtNode).getEnd());
+            } else
+                q = q + instance.getDemand(arriveAtNode);
+
+            D = D + timeInNode + deltaWT + travelTime;
+            ST += timeInNode;
+            TW = TW + deltaTW;
+            E = Math.max(instance.getTimewindow(arriveAtNode).getStart() - delta, E) - deltaWT;
+            L = Math.min(instance.getTimewindow(arriveAtNode).getEnd() - delta, L) + deltaTW;
+
+            prevNode = arriveAtNode;
+        }
+
+        double qInf = Math.max(0.0, q - instance.getVehicleCapacity());
+        return new Violations(qInf, TW, yInfeasible);
     }
 }

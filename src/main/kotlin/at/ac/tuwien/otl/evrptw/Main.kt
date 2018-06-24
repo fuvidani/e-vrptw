@@ -27,6 +27,18 @@ class Main {
         private val solver = EVRPTWSolver()
         private const val rampUpRuns = 20
         private const val measuredRuns = 30
+        val instanceToInitTemperatureMap = mapOf(
+            instances[0] to 1237.55,
+            instances[1] to 995.23,
+            instances[2] to 841.04,
+            instances[3] to 1167.86,
+            instances[4] to 1354.36,
+            instances[5] to 399.49,
+            instances[6] to 296.37,
+            instances[7] to 1664.92,
+            instances[8] to 1638.65,
+            instances[9] to 675.69
+        )
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -52,9 +64,10 @@ class Main {
                 println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
             }*/
 //            println(Random().nextInt(1-1) + 1)
-            for (i in 0 until 1) {
+            for (i in 1 until 2) {
                 runAlgorithmOnInstance(i, false)
             }
+            Executor.getExecutorService().shutdown()
         }
 
         private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean): Long {

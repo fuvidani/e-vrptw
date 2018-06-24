@@ -1,10 +1,16 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 
+/* ktlint-disable no-wildcard-imports */
+import at.ac.tuwien.otl.evrptw.Executor
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteExchangeExplorer
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteRelocateExplorer
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
-import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.*
 import java.util.logging.Logger
+import java.util.stream.Collectors
 
 /**
  * <h4>About this class</h4>
@@ -17,7 +23,6 @@ import java.util.logging.Logger
  */
 class TabuSearch(private val logEnabled: Boolean = true) {
     private val log: Logger = Logger.getLogger(this.javaClass.name)
-    private val explorers = listOf(TwoOptArcExchangeExplorer())
 
     fun apply(solution: EVRPTWSolution): EVRPTWSolution {
         var overallBestSolution = EVRPTWSolution(solution) // create deep copy
@@ -31,6 +36,12 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
             if (evaluateSolution(bestCandidate) < evaluateSolution(overallBestSolution)) {
                 overallBestSolution = bestCandidate
+                log(
+                    "New local optimum found. Cost: ${overallBestSolution.cost}, " +
+                            "Cap-Violation: ${overallBestSolution.fitnessValue.totalCapacityViolation}, " +
+                            "TW-Violation: ${overallBestSolution.fitnessValue.totalTimeWindowViolation}, " +
+                            "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}"
+                )
             }
             iteration++
         }
@@ -40,15 +51,27 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
     private fun bestSolutionOfNeighbourhoods(
         solution: EVRPTWSolution,
-        tabuList: Map<EVRPTWSolution, Int>
+        tabuMap: Map<EVRPTWSolution, Int>
     ): EVRPTWSolution {
-        val solutionsOfAllNeighbourhoods = mutableListOf<EVRPTWSolution>()
-        for (explorer in explorers) {
-            solutionsOfAllNeighbourhoods.addAll(explorer.exploreEverySolution(solution))
+        val solutionsOfAllNeighbourhoods = parallelExploreNeighbourhoods(solution)
+
+        val solutionsNotInTabu = solutionsOfAllNeighbourhoods.filter { !tabuMap.contains(it) }
+
+        if (solutionsNotInTabu.isEmpty()) {
+            log("NO SOLUTIONS AVAILABLE THAT ARE EITHER FEASIBLE OR NOT IN TABU LIST")
+            return solution
         }
-        return solutionsOfAllNeighbourhoods
-            .filter { !tabuList.contains(it) } // todo we should accept a "tabu" solution if it is feasible
-            .sortedBy { it.cost }[0]
+        return solutionsNotInTabu.sortedBy { it.fitnessValue.fitness }.first()
+    }
+
+    private fun parallelExploreNeighbourhoods(solution: EVRPTWSolution): List<EVRPTWSolution> {
+        val callableList = mutableListOf<INeighbourhoodExplorerCallable<EVRPTWSolution>>()
+        callableList.add(TwoOptArcExchangeExplorerCallable(solution, TwoOptArcExchangeExplorer()))
+        callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
+        callableList.add(InterIntraRouteExchangeExplorerCallable(solution, InterIntraRouteExchangeExplorer()))
+        callableList.add(InterIntraRouteRelocateExplorerCallable(solution, InterIntraRouteRelocateExplorer()))
+        val results = Executor.getExecutorService().invokeAll(callableList)
+        return results.stream().flatMap { it.get().stream() }.collect(Collectors.toList()).toList()
     }
 
     private fun updateTabuMap(solution: EVRPTWSolution, tabuMap: MutableMap<EVRPTWSolution, Int>) {
@@ -63,7 +86,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
     }
 
     private fun evaluateSolution(solution: EVRPTWSolution): Double {
-        return EVRPTWRouteVerifier(solution.instance).calculateTotalCost(solution.routes, false)
+        return solution.fitnessValue.fitness
     }
 
     private fun log(message: String) {
