@@ -58,7 +58,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     }
 
     private fun acceptSimulatedAnnealing(optimizedNewSolution: EVRPTWSolution, bestSolution: EVRPTWSolution): Boolean {
-        return true
+        return optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
     }
 
     private fun feasible(solution: EVRPTWSolution): Boolean {
