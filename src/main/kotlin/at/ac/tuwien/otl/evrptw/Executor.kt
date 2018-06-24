@@ -15,13 +15,13 @@ import java.util.concurrent.Executors
 class Executor private constructor() {
 
     companion object {
-        private var executorService: ExecutorService? = null
+        private var customExecutorService: ExecutorService? = null
 
         fun getExecutorService(): ExecutorService {
-            if (executorService == null) {
-                executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+            if (customExecutorService == null) {
+                customExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
             }
-            return executorService!!
+            return customExecutorService!!
         }
     }
 }
