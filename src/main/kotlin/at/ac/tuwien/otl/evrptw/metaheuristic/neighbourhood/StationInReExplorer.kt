@@ -2,6 +2,7 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import at.ac.tuwien.otl.evrptw.dto.Operator
 import at.ac.tuwien.otl.evrptw.dto.Route
 
 /**
@@ -70,7 +71,8 @@ class StationInReExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
         return EVRPTWSolution(
                 initialSolution.instance,
                 routes,
-                Route.calculateTotalDistance(routes, initialSolution.instance)
+                Route.calculateTotalDistance(routes, initialSolution.instance),
+                Operator.STATION_IN_RE
         )
     }
 }

@@ -41,7 +41,7 @@ class TabuSearch(private val logEnabled: Boolean = true) {
                             "Cap-Violation: ${overallBestSolution.fitnessValue.totalCapacityViolation}, " +
                             "TW-Violation: ${overallBestSolution.fitnessValue.totalTimeWindowViolation}, " +
                             "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}, " +
-                            "Fitness: ${overallBestSolution.fitnessValue.fitness}"
+                            "Induced by operator: ${overallBestSolution.originOperator}"
                 )
             }
             iteration++

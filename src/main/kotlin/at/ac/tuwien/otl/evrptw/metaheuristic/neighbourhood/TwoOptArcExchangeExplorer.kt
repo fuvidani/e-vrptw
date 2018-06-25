@@ -1,6 +1,7 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import at.ac.tuwien.otl.evrptw.dto.Operator
 import at.ac.tuwien.otl.evrptw.dto.Route
 
 /**
@@ -73,6 +74,6 @@ class TwoOptArcExchangeExplorer :
             routes.removeAt(secondRouteIndex)
         }
 
-        return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance))
+        return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance), Operator.TWO_OPT)
     }
 }

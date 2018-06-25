@@ -17,9 +17,10 @@ import java.util.stream.Collectors
  * @since 0.1.0
  */
 data class EVRPTWSolution(
-    val instance: EVRPTWInstance,
-    val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
-    val cost: Double
+        val instance: EVRPTWInstance,
+        val routes: MutableList<MutableList<EVRPTWInstance.Node>>,
+        val cost: Double,
+        val originOperator: Operator = Operator.NONE
 ) {
 
     val fitnessValue: FitnessValue = calculateFitnessValue()
@@ -138,7 +139,7 @@ data class EVRPTWSolution(
         }
         .collect(Collectors.toList())
         .toMutableList(),
-        solution.cost)
+            solution.cost, solution.originOperator)
 
     fun writeToFile() {
         File("solutions/" + instance.name + "_sol.txt").bufferedWriter().use { out ->
