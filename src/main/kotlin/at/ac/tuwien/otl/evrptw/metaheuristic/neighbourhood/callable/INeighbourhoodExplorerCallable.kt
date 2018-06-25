@@ -13,10 +13,10 @@ import java.util.concurrent.Callable
  * @since 1.0.0
  */
 abstract class INeighbourhoodExplorerCallable<T>(
-        private val initialSolution: T,
-        private val startAtIncl: Int,
-        private val endAtIncl: Int,
-        private val explorer: INeighbourhoodExplorer<T>
+    private val initialSolution: T,
+    private val startAtIncl: Int,
+    private val endAtIncl: Int,
+    private val explorer: INeighbourhoodExplorer<T>
 ) : Callable<List<T>> {
 
     /**

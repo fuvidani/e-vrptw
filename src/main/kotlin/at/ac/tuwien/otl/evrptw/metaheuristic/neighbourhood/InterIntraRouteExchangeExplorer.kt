@@ -30,7 +30,7 @@ class InterIntraRouteExchangeExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
         for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
 
-            for (secondRouteIndex in routeIndex until endAtExcl) {
+            for (secondRouteIndex in routeIndex until initialSolution.routes.size) {
                 val secondRoute = initialSolution.routes[secondRouteIndex]
                 for (nodeOfFirstRoute in 1 until route.size - 1) { // start at 1 and end -1 before due to depot
                     if (route[nodeOfFirstRoute] is EVRPTWInstance.RechargingStation) {

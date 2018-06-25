@@ -13,9 +13,9 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
  * @since 1.0.0
  */
 class StationInReExplorerCallable(
-        initialSolution: EVRPTWSolution,
-        startAtIncl: Int,
-        endAtIncl: Int,
-        explorer: StationInReExplorer
+    initialSolution: EVRPTWSolution,
+    startAtIncl: Int,
+    endAtIncl: Int,
+    explorer: StationInReExplorer
 ) :
         INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, startAtIncl, endAtIncl, explorer)

@@ -21,7 +21,7 @@ class TwoOptArcExchangeExplorer :
         for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
 
-            for (secondRouteIndex in (routeIndex + 1) until endAtExcl) {
+            for (secondRouteIndex in (routeIndex + 1) until initialSolution.routes.size) {
                 val secondRoute = initialSolution.routes[secondRouteIndex]
                 for (nodeOfFirstRoute in 1 until route.size - 1) { // start at 1 and end -1 before due to depot
                     for (nodeOfSecondRoute in 1 until secondRoute.size - 1) {

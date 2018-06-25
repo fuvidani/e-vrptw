@@ -13,8 +13,8 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteExchan
  * @since 1.0.0
  */
 class InterIntraRouteExchangeExplorerCallable(
-        initialSolution: EVRPTWSolution,
-        startAtIncl: Int,
-        endAtIncl: Int,
-        explorer: InterIntraRouteExchangeExplorer
+    initialSolution: EVRPTWSolution,
+    startAtIncl: Int,
+    endAtIncl: Int,
+    explorer: InterIntraRouteExchangeExplorer
 ) : INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, startAtIncl, endAtIncl, explorer)
