@@ -40,7 +40,8 @@ class TabuSearch(private val logEnabled: Boolean = true) {
                     "New local optimum found. Cost: ${overallBestSolution.cost}, " +
                             "Cap-Violation: ${overallBestSolution.fitnessValue.totalCapacityViolation}, " +
                             "TW-Violation: ${overallBestSolution.fitnessValue.totalTimeWindowViolation}, " +
-                            "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}"
+                            "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}, " +
+                            "Fitness: ${overallBestSolution.fitnessValue.fitness}"
                 )
             }
             iteration++

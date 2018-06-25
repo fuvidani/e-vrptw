@@ -17,6 +17,7 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_DIST
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_FEAS
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_DECREASE_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_INCREASE_RATE
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_MIN
 import at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch.TabuSearch
 import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.util.Random
@@ -62,6 +63,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             adjustParameters()
 
             if (acceptSimulatedAnnealing(optimizedNewSolution, bestSolution)) {
+                log("$$$ New best solution $$$. Cost: ${optimizedNewSolution.cost}" + "Cap-Violation: ${optimizedNewSolution.fitnessValue.totalCapacityViolation}, " +
+                        "TW-Violation: ${optimizedNewSolution.fitnessValue.totalTimeWindowViolation}, " +
+                        "Bat-Violation: ${optimizedNewSolution.fitnessValue.totalBatteryCapacityViolation}, " +
+                        "Fitness: ${optimizedNewSolution.fitnessValue.fitness}")
                 bestSolution = optimizedNewSolution
                 if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
                     log("New best feasible solution with cost ${optimizedNewSolution.cost}")
@@ -97,9 +102,9 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             thresholdCounter--
         }
         if (thresholdCounter == NO_CHANGE_THRESHOLD) {
-            ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else ALPHA - VIOLATION_FACTOR_DECREASE_RATE
-            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else BETA - VIOLATION_FACTOR_DECREASE_RATE
-            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else GAMMA - VIOLATION_FACTOR_DECREASE_RATE
+            ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else Math.max(ALPHA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else Math.max(BETA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else Math.max(GAMMA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
             thresholdCounter = 0
             log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA)")
         } else if (thresholdCounter == -NO_CHANGE_THRESHOLD) {
