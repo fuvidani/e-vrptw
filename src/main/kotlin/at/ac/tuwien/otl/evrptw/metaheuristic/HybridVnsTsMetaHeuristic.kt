@@ -1,10 +1,8 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic
 
+/* ktlint-disable no-wildcard-imports */
 import at.ac.tuwien.otl.evrptw.Main
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
-import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
-import at.ac.tuwien.otl.evrptw.dto.Route
+import at.ac.tuwien.otl.evrptw.dto.*
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_DEFAULT
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA
@@ -125,7 +123,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     private fun acceptSimulatedAnnealing(optimizedNewSolution: EVRPTWSolution, bestSolution: EVRPTWSolution): Boolean {
         val accept: Boolean
         accept = if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
-            optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
+            // optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
+            // bestSolution.fitnessValue.fitness != bestSolution.cost && optimizedNewSolution.fitnessValue.fitness < calculateFitnessOfSolutionWithDefaultFactors(bestSolution)
+            /* accept a new feasible solution, if the current best one is infeasible OR if both are feasible and the new is fitter than the current best one */
+            bestSolution.fitnessValue.fitness != bestSolution.cost || optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
         } else {
             if (optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness) {
                 val exponent =
@@ -140,6 +141,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
         }
         temperature *= COOLING_FACTOR
         return accept
+    }
+
+    private fun calculateFitnessOfSolutionWithDefaultFactors(solution: EVRPTWSolution): Double {
+        return solution.cost + (ALPHA_DEFAULT * solution.fitnessValue.totalCapacityViolation) + (BETA_DEFAULT * solution.fitnessValue.totalTimeWindowViolation) + (GAMMA_DEFAULT * solution.fitnessValue.totalBatteryCapacityViolation)
     }
 
     private fun feasible(solution: EVRPTWSolution): Boolean {

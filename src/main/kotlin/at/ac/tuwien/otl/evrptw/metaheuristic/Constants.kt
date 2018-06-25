@@ -12,7 +12,7 @@ package at.ac.tuwien.otl.evrptw.metaheuristic
 class Constants private constructor() {
 
     companion object {
-        const val N_DIST = 50
+        const val N_DIST = 30
         const val N_FEAS = 5
         const val N_TABU = 50
         const val N_PENALTY = 2
@@ -23,7 +23,7 @@ class Constants private constructor() {
         const val ALPHA_DEFAULT = 1.0
         const val BETA_DEFAULT = 1.0
         const val GAMMA_DEFAULT = 1.0
-        const val VIOLATION_FACTOR_MIN = 0.2
+        const val VIOLATION_FACTOR_MIN = 0.3
         const val VIOLATION_FACTOR_INCREASE_RATE = 0.3
         const val VIOLATION_FACTOR_DECREASE_RATE = 0.2
         var ALPHA = ALPHA_DEFAULT
