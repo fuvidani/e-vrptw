@@ -40,7 +40,8 @@ class TabuSearch(private val logEnabled: Boolean = true) {
                     "New local optimum found. Cost: ${overallBestSolution.cost}, " +
                             "Cap-Violation: ${overallBestSolution.fitnessValue.totalCapacityViolation}, " +
                             "TW-Violation: ${overallBestSolution.fitnessValue.totalTimeWindowViolation}, " +
-                            "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}"
+                            "Bat-Violation: ${overallBestSolution.fitnessValue.totalBatteryCapacityViolation}, " +
+                            "Induced by operator: ${overallBestSolution.originOperator}"
                 )
             }
             iteration++
@@ -66,10 +67,16 @@ class TabuSearch(private val logEnabled: Boolean = true) {
 
     private fun parallelExploreNeighbourhoods(solution: EVRPTWSolution): List<EVRPTWSolution> {
         val callableList = mutableListOf<INeighbourhoodExplorerCallable<EVRPTWSolution>>()
-        callableList.add(TwoOptArcExchangeExplorerCallable(solution, TwoOptArcExchangeExplorer()))
-        callableList.add(StationInReExplorerCallable(solution, StationInReExplorer()))
-        callableList.add(InterIntraRouteExchangeExplorerCallable(solution, InterIntraRouteExchangeExplorer()))
-        callableList.add(InterIntraRouteRelocateExplorerCallable(solution, InterIntraRouteRelocateExplorer()))
+        val numberOfRoutes = solution.routes.size
+        val middleOfRoutes = numberOfRoutes / 2
+        callableList.add(TwoOptArcExchangeExplorerCallable(solution, 0, middleOfRoutes, TwoOptArcExchangeExplorer()))
+        callableList.add(TwoOptArcExchangeExplorerCallable(solution, middleOfRoutes, numberOfRoutes, TwoOptArcExchangeExplorer()))
+        callableList.add(StationInReExplorerCallable(solution, 0, middleOfRoutes, StationInReExplorer()))
+        callableList.add(StationInReExplorerCallable(solution, middleOfRoutes, numberOfRoutes, StationInReExplorer()))
+        callableList.add(InterIntraRouteExchangeExplorerCallable(solution, 0, middleOfRoutes, InterIntraRouteExchangeExplorer()))
+        callableList.add(InterIntraRouteExchangeExplorerCallable(solution, middleOfRoutes, numberOfRoutes, InterIntraRouteExchangeExplorer()))
+        callableList.add(InterIntraRouteRelocateExplorerCallable(solution, 0, middleOfRoutes, InterIntraRouteRelocateExplorer()))
+        callableList.add(InterIntraRouteRelocateExplorerCallable(solution, middleOfRoutes, numberOfRoutes, InterIntraRouteRelocateExplorer()))
         val results = Executor.getExecutorService().invokeAll(callableList)
         return results.stream().flatMap { it.get().stream() }.collect(Collectors.toList()).toList()
     }

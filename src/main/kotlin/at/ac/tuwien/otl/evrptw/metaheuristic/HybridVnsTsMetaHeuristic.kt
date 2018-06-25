@@ -1,10 +1,8 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic
 
+/* ktlint-disable no-wildcard-imports */
 import at.ac.tuwien.otl.evrptw.Main
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
-import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
-import at.ac.tuwien.otl.evrptw.dto.NeighbourhoodStructure
-import at.ac.tuwien.otl.evrptw.dto.Route
+import at.ac.tuwien.otl.evrptw.dto.*
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_DEFAULT
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA
@@ -17,6 +15,7 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_DIST
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_FEAS
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_DECREASE_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_INCREASE_RATE
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_MIN
 import at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch.TabuSearch
 import at.ac.tuwien.otl.evrptw.verifier.EVRPTWRouteVerifier
 import java.util.Random
@@ -62,6 +61,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             adjustParameters()
 
             if (acceptSimulatedAnnealing(optimizedNewSolution, bestSolution)) {
+                log("$$$ New best solution $$$. Cost: ${optimizedNewSolution.cost}" + "Cap-Violation: ${optimizedNewSolution.fitnessValue.totalCapacityViolation}, " +
+                        "TW-Violation: ${optimizedNewSolution.fitnessValue.totalTimeWindowViolation}, " +
+                        "Bat-Violation: ${optimizedNewSolution.fitnessValue.totalBatteryCapacityViolation}, " +
+                        "Fitness: ${optimizedNewSolution.fitnessValue.fitness}")
                 bestSolution = optimizedNewSolution
                 if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
                     log("New best feasible solution with cost ${optimizedNewSolution.cost}")
@@ -97,9 +100,9 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             thresholdCounter--
         }
         if (thresholdCounter == NO_CHANGE_THRESHOLD) {
-            ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else ALPHA - VIOLATION_FACTOR_DECREASE_RATE
-            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else BETA - VIOLATION_FACTOR_DECREASE_RATE
-            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else GAMMA - VIOLATION_FACTOR_DECREASE_RATE
+            ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else Math.max(ALPHA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else Math.max(BETA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else Math.max(GAMMA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
             thresholdCounter = 0
             log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA)")
         } else if (thresholdCounter == -NO_CHANGE_THRESHOLD) {
@@ -120,7 +123,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     private fun acceptSimulatedAnnealing(optimizedNewSolution: EVRPTWSolution, bestSolution: EVRPTWSolution): Boolean {
         val accept: Boolean
         accept = if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
-            optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
+            // optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
+            // bestSolution.fitnessValue.fitness != bestSolution.cost && optimizedNewSolution.fitnessValue.fitness < calculateFitnessOfSolutionWithDefaultFactors(bestSolution)
+            /* accept a new feasible solution, if the current best one is infeasible OR if both are feasible and the new is fitter than the current best one */
+            bestSolution.fitnessValue.fitness != bestSolution.cost || optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
         } else {
             if (optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness) {
                 val exponent =
@@ -135,6 +141,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
         }
         temperature *= COOLING_FACTOR
         return accept
+    }
+
+    private fun calculateFitnessOfSolutionWithDefaultFactors(solution: EVRPTWSolution): Double {
+        return solution.cost + (ALPHA_DEFAULT * solution.fitnessValue.totalCapacityViolation) + (BETA_DEFAULT * solution.fitnessValue.totalTimeWindowViolation) + (GAMMA_DEFAULT * solution.fitnessValue.totalBatteryCapacityViolation)
     }
 
     private fun feasible(solution: EVRPTWSolution): Boolean {

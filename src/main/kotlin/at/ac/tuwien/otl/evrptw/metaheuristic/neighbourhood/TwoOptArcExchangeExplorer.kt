@@ -1,6 +1,7 @@
 package at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import at.ac.tuwien.otl.evrptw.dto.Operator
 import at.ac.tuwien.otl.evrptw.dto.Route
 
 /**
@@ -15,9 +16,9 @@ import at.ac.tuwien.otl.evrptw.dto.Route
 class TwoOptArcExchangeExplorer :
     INeighbourhoodExplorer<EVRPTWSolution> {
 
-    override fun exploreEverySolution(initialSolution: EVRPTWSolution): List<EVRPTWSolution> {
+    override fun exploreEverySolution(initialSolution: EVRPTWSolution, startAtIncl: Int, endAtExcl: Int): List<EVRPTWSolution> {
         val result = mutableListOf<EVRPTWSolution>()
-        for (routeIndex in 0 until initialSolution.routes.size) {
+        for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
 
             for (secondRouteIndex in (routeIndex + 1) until initialSolution.routes.size) {
@@ -73,6 +74,6 @@ class TwoOptArcExchangeExplorer :
             routes.removeAt(secondRouteIndex)
         }
 
-        return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance))
+        return EVRPTWSolution(solution.instance, routes, Route.calculateTotalDistance(routes, solution.instance), Operator.TWO_OPT)
     }
 }

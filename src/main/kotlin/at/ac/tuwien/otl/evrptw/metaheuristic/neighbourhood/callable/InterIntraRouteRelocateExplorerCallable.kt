@@ -14,5 +14,7 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteReloca
  */
 class InterIntraRouteRelocateExplorerCallable(
     initialSolution: EVRPTWSolution,
+    startAtIncl: Int,
+    endAtIncl: Int,
     explorer: InterIntraRouteRelocateExplorer
-) : INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, explorer)
+) : INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, startAtIncl, endAtIncl, explorer)

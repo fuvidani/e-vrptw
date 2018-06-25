@@ -20,5 +20,5 @@ interface INeighbourhoodExplorer<T> {
      * be calculated
      * @return a list of neighbour solutions, not necessarily sorted
      */
-    fun exploreEverySolution(initialSolution: T): List<T>
+    fun exploreEverySolution(initialSolution: T, startAtIncl: Int, endAtExcl: Int): List<T>
 }

@@ -12,5 +12,10 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
  * @version 1.0.0
  * @since 1.0.0
  */
-class StationInReExplorerCallable(initialSolution: EVRPTWSolution, explorer: StationInReExplorer) :
-    INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, explorer)
+class StationInReExplorerCallable(
+    initialSolution: EVRPTWSolution,
+    startAtIncl: Int,
+    endAtIncl: Int,
+    explorer: StationInReExplorer
+) :
+        INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, startAtIncl, endAtIncl, explorer)

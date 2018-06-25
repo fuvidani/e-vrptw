@@ -2,6 +2,7 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import at.ac.tuwien.otl.evrptw.dto.Operator
 import at.ac.tuwien.otl.evrptw.dto.Route
 
 /**
@@ -24,9 +25,9 @@ class InterIntraRouteExchangeExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
      * be calculated
      * @return a list of neighbour solutions, not necessarily sorted
      */
-    override fun exploreEverySolution(initialSolution: EVRPTWSolution): List<EVRPTWSolution> {
+    override fun exploreEverySolution(initialSolution: EVRPTWSolution, startAtIncl: Int, endAtExcl: Int): List<EVRPTWSolution> {
         val result = mutableListOf<EVRPTWSolution>()
-        for (routeIndex in 0 until initialSolution.routes.size) {
+        for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
 
             for (secondRouteIndex in routeIndex until initialSolution.routes.size) {
@@ -76,7 +77,8 @@ class InterIntraRouteExchangeExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
         return EVRPTWSolution(
             initialSolution.instance,
             routes,
-            Route.calculateTotalDistance(routes, initialSolution.instance)
+                Route.calculateTotalDistance(routes, initialSolution.instance),
+                Operator.EXCHANGE
         )
     }
 }

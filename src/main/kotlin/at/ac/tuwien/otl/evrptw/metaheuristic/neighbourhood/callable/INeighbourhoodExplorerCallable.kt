@@ -14,6 +14,8 @@ import java.util.concurrent.Callable
  */
 abstract class INeighbourhoodExplorerCallable<T>(
     private val initialSolution: T,
+    private val startAtIncl: Int,
+    private val endAtIncl: Int,
     private val explorer: INeighbourhoodExplorer<T>
 ) : Callable<List<T>> {
 
@@ -24,6 +26,6 @@ abstract class INeighbourhoodExplorerCallable<T>(
      * @throws Exception if unable to compute a result
      */
     override fun call(): List<T> {
-        return explorer.exploreEverySolution(initialSolution)
+        return explorer.exploreEverySolution(initialSolution, startAtIncl, endAtIncl)
     }
 }
