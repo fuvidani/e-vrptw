@@ -12,5 +12,10 @@ import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExpl
  * @version 1.0.0
  * @since 1.0.0
  */
-class TwoOptArcExchangeExplorerCallable(initialSolution: EVRPTWSolution, explorer: TwoOptArcExchangeExplorer) :
-    INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, explorer)
+class TwoOptArcExchangeExplorerCallable(
+        initialSolution: EVRPTWSolution,
+        startAtIncl: Int,
+        endAtIncl: Int,
+        explorer: TwoOptArcExchangeExplorer
+) :
+        INeighbourhoodExplorerCallable<EVRPTWSolution>(initialSolution, startAtIncl, endAtIncl, explorer)

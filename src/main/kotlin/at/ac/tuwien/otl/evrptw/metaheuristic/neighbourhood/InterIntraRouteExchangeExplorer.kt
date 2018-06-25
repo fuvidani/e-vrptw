@@ -24,12 +24,12 @@ class InterIntraRouteExchangeExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
      * be calculated
      * @return a list of neighbour solutions, not necessarily sorted
      */
-    override fun exploreEverySolution(initialSolution: EVRPTWSolution): List<EVRPTWSolution> {
+    override fun exploreEverySolution(initialSolution: EVRPTWSolution, startAtIncl: Int, endAtExcl: Int): List<EVRPTWSolution> {
         val result = mutableListOf<EVRPTWSolution>()
-        for (routeIndex in 0 until initialSolution.routes.size) {
+        for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
 
-            for (secondRouteIndex in routeIndex until initialSolution.routes.size) {
+            for (secondRouteIndex in routeIndex until endAtExcl) {
                 val secondRoute = initialSolution.routes[secondRouteIndex]
                 for (nodeOfFirstRoute in 1 until route.size - 1) { // start at 1 and end -1 before due to depot
                     if (route[nodeOfFirstRoute] is EVRPTWInstance.RechargingStation) {

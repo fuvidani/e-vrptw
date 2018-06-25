@@ -15,9 +15,9 @@ import at.ac.tuwien.otl.evrptw.dto.Route
  */
 class StationInReExplorer : INeighbourhoodExplorer<EVRPTWSolution> {
 
-    override fun exploreEverySolution(initialSolution: EVRPTWSolution): List<EVRPTWSolution> {
+    override fun exploreEverySolution(initialSolution: EVRPTWSolution, startAtIncl: Int, endAtExcl: Int): List<EVRPTWSolution> {
         val result = mutableListOf<EVRPTWSolution>()
-        for (routeIndex in 0 until initialSolution.routes.size) {
+        for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
             for (nodeIndex in 1 until route.size) {
                 if (route[nodeIndex] is EVRPTWInstance.RechargingStation && route.size > 3) {

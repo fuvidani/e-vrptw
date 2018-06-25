@@ -15,12 +15,12 @@ import at.ac.tuwien.otl.evrptw.dto.Route
 class TwoOptArcExchangeExplorer :
     INeighbourhoodExplorer<EVRPTWSolution> {
 
-    override fun exploreEverySolution(initialSolution: EVRPTWSolution): List<EVRPTWSolution> {
+    override fun exploreEverySolution(initialSolution: EVRPTWSolution, startAtIncl: Int, endAtExcl: Int): List<EVRPTWSolution> {
         val result = mutableListOf<EVRPTWSolution>()
-        for (routeIndex in 0 until initialSolution.routes.size) {
+        for (routeIndex in startAtIncl until endAtExcl) {
             val route = initialSolution.routes[routeIndex]
 
-            for (secondRouteIndex in (routeIndex + 1) until initialSolution.routes.size) {
+            for (secondRouteIndex in (routeIndex + 1) until endAtExcl) {
                 val secondRoute = initialSolution.routes[secondRouteIndex]
                 for (nodeOfFirstRoute in 1 until route.size - 1) { // start at 1 and end -1 before due to depot
                     for (nodeOfSecondRoute in 1 until secondRoute.size - 1) {
