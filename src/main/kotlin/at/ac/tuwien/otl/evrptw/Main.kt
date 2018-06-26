@@ -64,7 +64,7 @@ class Main {
                 println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
             }*/
 //            println(Random().nextInt(1-1) + 1)
-            for (i in 3 until 4) {
+            for (i in 9 until 10) {
                 runAlgorithmOnInstance(i, false)
             }
             Executor.getExecutorService().shutdown()

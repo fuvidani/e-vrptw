@@ -118,13 +118,10 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             decreaseRateAlpha()
             decreaseRateBeta()
             decreaseRateGamma()
-            /*ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else Math.max(ALPHA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
-            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else Math.max(BETA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
-            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else Math.max(GAMMA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)*/
             thresholdCounter = 0
             infeasibleSequenceCounter = 0
             feasibleSequenceCounter++
-            log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA). Fibonacci multiplier: ${FIBONACCI[feasibleSequenceCounter--]}")
+            log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA). Fibonacci multiplier: ${FIBONACCI[feasibleSequenceCounter - 1]}")
         } else if (thresholdCounter == -NO_CHANGE_THRESHOLD) {
             val numberOfCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalCapacityViolation > 0.0 }.toList().size
@@ -133,36 +130,51 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             val numberOfBatteryCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalBatteryCapacityViolation > 0.0 }.toList().size
             val indexOfMultiplier = infeasibleSequenceCounter % FIBONACCI.size
-            ALPHA += VIOLATION_FACTOR_INCREASE_RATE * numberOfCapacityViolations * FIBONACCI[indexOfMultiplier]
-            BETA += VIOLATION_FACTOR_INCREASE_RATE * numberOfTimeWindowViolations * FIBONACCI[indexOfMultiplier]
-            GAMMA += VIOLATION_FACTOR_INCREASE_RATE * numberOfBatteryCapacityViolations * FIBONACCI[indexOfMultiplier]
+            if (numberOfCapacityViolations > 0 && ALPHA <= VIOLATION_FACTOR_MIN) {
+                ALPHA = VIOLATION_FACTOR_MIN
+            } else {
+                ALPHA += VIOLATION_FACTOR_INCREASE_RATE * numberOfCapacityViolations * FIBONACCI[indexOfMultiplier]
+            }
+            if (numberOfTimeWindowViolations > 0 && BETA <= VIOLATION_FACTOR_MIN) {
+                BETA = VIOLATION_FACTOR_MIN
+            } else {
+                BETA += VIOLATION_FACTOR_INCREASE_RATE * numberOfTimeWindowViolations * FIBONACCI[indexOfMultiplier]
+            }
+            if (numberOfBatteryCapacityViolations > 0 && GAMMA <= VIOLATION_FACTOR_MIN) {
+                GAMMA = VIOLATION_FACTOR_MIN
+            } else {
+                GAMMA += VIOLATION_FACTOR_INCREASE_RATE * numberOfBatteryCapacityViolations * FIBONACCI[indexOfMultiplier]
+            }
             thresholdCounter = 0
             infeasibleSequenceCounter++
             feasibleSequenceCounter = 0
-            log("++ VIOLATION FACTORS INCREASED = ($ALPHA, $BETA, $GAMMA). Fibonacci multiplier: ${FIBONACCI[infeasibleSequenceCounter--]}")
+            log("++ VIOLATION FACTORS INCREASED = ($ALPHA, $BETA, $GAMMA). Fibonacci multiplier: ${FIBONACCI[infeasibleSequenceCounter - 1]}")
         }
     }
 
     private fun decreaseRateAlpha() {
+        val indexOfMultiplier = feasibleSequenceCounter % FIBONACCI.size
         ALPHA = when {
             ALPHA > ALPHA_DEFAULT -> ALPHA_DEFAULT
-            ALPHA <= VIOLATION_FACTOR_MIN -> Math.max(ALPHA - VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE, VIOLATION_FACTOR_ABSOLUTE_MIN)
+            ALPHA <= VIOLATION_FACTOR_MIN -> Math.max(ALPHA - (VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE * FIBONACCI[indexOfMultiplier]), VIOLATION_FACTOR_ABSOLUTE_MIN)
             else -> Math.max(ALPHA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
         }
     }
 
     private fun decreaseRateBeta() {
+        val indexOfMultiplier = feasibleSequenceCounter % FIBONACCI.size
         BETA = when {
             BETA > BETA_DEFAULT -> BETA_DEFAULT
-            BETA <= VIOLATION_FACTOR_MIN -> Math.max(BETA - VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE, VIOLATION_FACTOR_ABSOLUTE_MIN)
+            BETA <= VIOLATION_FACTOR_MIN -> Math.max(BETA - (VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE * FIBONACCI[indexOfMultiplier]), VIOLATION_FACTOR_ABSOLUTE_MIN)
             else -> Math.max(BETA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
         }
     }
 
     private fun decreaseRateGamma() {
+        val indexOfMultiplier = feasibleSequenceCounter % FIBONACCI.size
         GAMMA = when {
             GAMMA > GAMMA_DEFAULT -> GAMMA_DEFAULT
-            GAMMA <= VIOLATION_FACTOR_MIN -> Math.max(GAMMA - VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE, VIOLATION_FACTOR_ABSOLUTE_MIN)
+            GAMMA <= VIOLATION_FACTOR_MIN -> Math.max(GAMMA - (VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE * FIBONACCI[indexOfMultiplier]), VIOLATION_FACTOR_ABSOLUTE_MIN)
             else -> Math.max(GAMMA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
         }
     }
