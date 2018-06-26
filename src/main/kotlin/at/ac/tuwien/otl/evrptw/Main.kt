@@ -64,10 +64,23 @@ class Main {
                 println("instanceId: $i, avg. runtime: ${TimeUnit.NANOSECONDS.toMillis(instanceRuntimeMap[i]!!.average().toLong())} ms")
             }*/
 //            println(Random().nextInt(1-1) + 1)
-            for (i in 1 until 2) {
+            for (i in 6 until 7) {
                 runAlgorithmOnInstance(i, false)
             }
             Executor.getExecutorService().shutdown()
+
+//            plotSolutions()
+        }
+
+        private fun plotSolutions() {
+            val visualizer = EVRPTWSolutionVisualizer()
+            val instanceLoader = InstanceLoader()
+
+            for (i in 0 until 10) {
+                val instanceString = instances[i]
+                val instance = instanceLoader.load(instanceString)
+                visualizer.visualizeSolution(instance)
+            }
         }
 
         private fun runAlgorithmOnInstance(instanceId: Int, detailed: Boolean): Long {
