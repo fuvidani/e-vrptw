@@ -11,6 +11,7 @@ package at.ac.tuwien.otl.evrptw.dto
 enum class Operator {
     NONE,
     TWO_OPT,
+    TWO_OR_OPT,
     EXCHANGE,
     RELOCATE,
     STATION_IN_RE

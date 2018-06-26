@@ -5,14 +5,20 @@ import at.ac.tuwien.otl.evrptw.Main
 import at.ac.tuwien.otl.evrptw.dto.*
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_STARTING
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA_STARTING
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.COOLING_FACTOR
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.FIBONACCI
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA_STARTING
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.NO_CHANGE_THRESHOLD
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_DIST
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_FEAS
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_ABSOLUTE_MIN
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_DECREASE_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_INCREASE_RATE
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.VIOLATION_FACTOR_MIN
@@ -39,11 +45,13 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     private val lastSavedSolutions = mutableListOf<EVRPTWSolution>()
     private var temperature = 0.0
     private var thresholdCounter = 0
+    private var infeasibleSequenceCounter = 0
+    private var feasibleSequenceCounter = 0
 
     override fun improveSolution(evrptwSolution: EVRPTWSolution): EVRPTWSolution {
         temperature = Main.instanceToInitTemperatureMap[evrptwSolution.instance.name]!!
-        lastSavedSolutions.clear()
-        thresholdCounter = 0
+        resetParameters()
+
         var bestFeasibleSolution = evrptwSolution
         var bestSolution = evrptwSolution
         var k = 1
@@ -66,7 +74,7 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
                         "Bat-Violation: ${optimizedNewSolution.fitnessValue.totalBatteryCapacityViolation}, " +
                         "Fitness: ${optimizedNewSolution.fitnessValue.fitness}")
                 bestSolution = optimizedNewSolution
-                if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
+                if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost && optimizedNewSolution.cost < bestFeasibleSolution.cost) {
                     log("New best feasible solution with cost ${optimizedNewSolution.cost}")
                     bestFeasibleSolution = optimizedNewSolution
                 }
@@ -92,6 +100,16 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
         return bestFeasibleSolution
     }
 
+    private fun resetParameters() {
+        ALPHA = ALPHA_STARTING
+        BETA = BETA_STARTING
+        GAMMA = GAMMA_STARTING
+        lastSavedSolutions.clear()
+        thresholdCounter = 0
+        infeasibleSequenceCounter = 0
+        feasibleSequenceCounter = 0
+    }
+
     private fun adjustParameters() {
         val lastSolution = lastSavedSolutions.last()
         if (lastSolution.fitnessValue.fitness == lastSolution.cost) {
@@ -100,11 +118,13 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             thresholdCounter--
         }
         if (thresholdCounter == NO_CHANGE_THRESHOLD) {
-            ALPHA = if (ALPHA > ALPHA_DEFAULT) ALPHA_DEFAULT else Math.max(ALPHA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
-            BETA = if (BETA > BETA_DEFAULT) BETA_DEFAULT else Math.max(BETA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
-            GAMMA = if (GAMMA > GAMMA_DEFAULT) GAMMA_DEFAULT else Math.max(GAMMA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+            decreaseRateAlpha()
+            decreaseRateBeta()
+            decreaseRateGamma()
             thresholdCounter = 0
-            log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA)")
+            infeasibleSequenceCounter = 0
+            feasibleSequenceCounter++
+            log("-- VIOLATION FACTORS DECREASED = ($ALPHA, $BETA, $GAMMA). Fibonacci multiplier: ${FIBONACCI[feasibleSequenceCounter - 1]}")
         } else if (thresholdCounter == -NO_CHANGE_THRESHOLD) {
             val numberOfCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalCapacityViolation > 0.0 }.toList().size
@@ -112,21 +132,70 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalTimeWindowViolation > 0.0 }.toList().size
             val numberOfBatteryCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalBatteryCapacityViolation > 0.0 }.toList().size
-            ALPHA += VIOLATION_FACTOR_INCREASE_RATE * numberOfCapacityViolations
-            BETA += VIOLATION_FACTOR_INCREASE_RATE * numberOfTimeWindowViolations
-            GAMMA += VIOLATION_FACTOR_INCREASE_RATE * numberOfBatteryCapacityViolations
+            val indexOfMultiplier = infeasibleSequenceCounter % FIBONACCI.size
+            if (numberOfCapacityViolations > 0 && ALPHA < VIOLATION_FACTOR_MIN) {
+                ALPHA = VIOLATION_FACTOR_MIN
+            } else {
+                ALPHA += VIOLATION_FACTOR_INCREASE_RATE * numberOfCapacityViolations * FIBONACCI[indexOfMultiplier]
+            }
+            if (numberOfTimeWindowViolations > 0 && BETA < VIOLATION_FACTOR_MIN) {
+                BETA = VIOLATION_FACTOR_MIN
+            } else {
+                BETA += VIOLATION_FACTOR_INCREASE_RATE * numberOfTimeWindowViolations * FIBONACCI[indexOfMultiplier]
+            }
+            if (numberOfBatteryCapacityViolations > 0 && GAMMA < VIOLATION_FACTOR_MIN) {
+                GAMMA = VIOLATION_FACTOR_MIN
+            } else {
+                GAMMA += VIOLATION_FACTOR_INCREASE_RATE * numberOfBatteryCapacityViolations * FIBONACCI[indexOfMultiplier]
+            }
             thresholdCounter = 0
-            log("++ VIOLATION FACTORS INCREASED = ($ALPHA, $BETA, $GAMMA)")
+            infeasibleSequenceCounter++
+            feasibleSequenceCounter = 0
+            log("++ VIOLATION FACTORS INCREASED = ($ALPHA, $BETA, $GAMMA). Fibonacci multiplier: ${FIBONACCI[infeasibleSequenceCounter - 1]}")
+        }
+    }
+
+    private fun decreaseRateAlpha() {
+        val indexOfMultiplier = feasibleSequenceCounter % FIBONACCI.size
+        ALPHA = when {
+            ALPHA > ALPHA_DEFAULT -> ALPHA_DEFAULT
+            ALPHA <= VIOLATION_FACTOR_MIN -> Math.max(ALPHA - (VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE * FIBONACCI[indexOfMultiplier]), VIOLATION_FACTOR_ABSOLUTE_MIN)
+            else -> Math.max(ALPHA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+        }
+    }
+
+    private fun decreaseRateBeta() {
+        val indexOfMultiplier = feasibleSequenceCounter % FIBONACCI.size
+        BETA = when {
+            BETA > BETA_DEFAULT -> BETA_DEFAULT
+            BETA <= VIOLATION_FACTOR_MIN -> Math.max(BETA - (VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE * FIBONACCI[indexOfMultiplier]), VIOLATION_FACTOR_ABSOLUTE_MIN)
+            else -> Math.max(BETA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
+        }
+    }
+
+    private fun decreaseRateGamma() {
+        val indexOfMultiplier = feasibleSequenceCounter % FIBONACCI.size
+        GAMMA = when {
+            GAMMA > GAMMA_DEFAULT -> GAMMA_DEFAULT
+            GAMMA <= VIOLATION_FACTOR_MIN -> Math.max(GAMMA - (VIOLATION_FACTOR_BELOW_MIN_DESCENT_RATE * FIBONACCI[indexOfMultiplier]), VIOLATION_FACTOR_ABSOLUTE_MIN)
+            else -> Math.max(GAMMA - VIOLATION_FACTOR_DECREASE_RATE, VIOLATION_FACTOR_MIN)
         }
     }
 
     private fun acceptSimulatedAnnealing(optimizedNewSolution: EVRPTWSolution, bestSolution: EVRPTWSolution): Boolean {
         val accept: Boolean
         accept = if (optimizedNewSolution.fitnessValue.fitness == optimizedNewSolution.cost) {
-            // optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
-            // bestSolution.fitnessValue.fitness != bestSolution.cost && optimizedNewSolution.fitnessValue.fitness < calculateFitnessOfSolutionWithDefaultFactors(bestSolution)
-            /* accept a new feasible solution, if the current best one is infeasible OR if both are feasible and the new is fitter than the current best one */
-            bestSolution.fitnessValue.fitness != bestSolution.cost || optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness
+            when {
+                bestSolution.fitnessValue.fitness != bestSolution.cost -> {
+                    log("Accepting new feasible solution, because current best is infeasible")
+                    true
+                }
+                optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness -> {
+                    log("Accepting new feasible solution, because new is better than current best feasible")
+                    true
+                }
+                else -> false
+            }
         } else {
             if (optimizedNewSolution.fitnessValue.fitness < bestSolution.fitnessValue.fitness) {
                 val exponent =
@@ -141,10 +210,6 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
         }
         temperature *= COOLING_FACTOR
         return accept
-    }
-
-    private fun calculateFitnessOfSolutionWithDefaultFactors(solution: EVRPTWSolution): Double {
-        return solution.cost + (ALPHA_DEFAULT * solution.fitnessValue.totalCapacityViolation) + (BETA_DEFAULT * solution.fitnessValue.totalTimeWindowViolation) + (GAMMA_DEFAULT * solution.fitnessValue.totalBatteryCapacityViolation)
     }
 
     private fun feasible(solution: EVRPTWSolution): Boolean {

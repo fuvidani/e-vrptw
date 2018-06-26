@@ -4,10 +4,7 @@ package at.ac.tuwien.otl.evrptw.metaheuristic.tabusearch
 import at.ac.tuwien.otl.evrptw.Executor
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_TABU
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteExchangeExplorer
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.InterIntraRouteRelocateExplorer
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.StationInReExplorer
-import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.TwoOptArcExchangeExplorer
+import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.*
 import at.ac.tuwien.otl.evrptw.metaheuristic.neighbourhood.callable.*
 import java.util.logging.Logger
 import java.util.stream.Collectors
@@ -71,6 +68,8 @@ class TabuSearch(private val logEnabled: Boolean = true) {
         val middleOfRoutes = numberOfRoutes / 2
         callableList.add(TwoOptArcExchangeExplorerCallable(solution, 0, middleOfRoutes, TwoOptArcExchangeExplorer()))
         callableList.add(TwoOptArcExchangeExplorerCallable(solution, middleOfRoutes, numberOfRoutes, TwoOptArcExchangeExplorer()))
+        callableList.add(TwoOrOptExplorerCallable(solution, 0, middleOfRoutes, TwoOrOptExplorer()))
+        callableList.add(TwoOrOptExplorerCallable(solution, middleOfRoutes, numberOfRoutes, TwoOrOptExplorer()))
         callableList.add(StationInReExplorerCallable(solution, 0, middleOfRoutes, StationInReExplorer()))
         callableList.add(StationInReExplorerCallable(solution, middleOfRoutes, numberOfRoutes, StationInReExplorer()))
         callableList.add(InterIntraRouteExchangeExplorerCallable(solution, 0, middleOfRoutes, InterIntraRouteExchangeExplorer()))

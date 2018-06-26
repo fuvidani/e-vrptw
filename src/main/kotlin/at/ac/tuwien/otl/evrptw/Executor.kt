@@ -19,7 +19,7 @@ class Executor private constructor() {
 
         fun getExecutorService(): ExecutorService {
             if (customExecutorService == null) {
-                customExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+                customExecutorService = Executors.newFixedThreadPool(10)
             }
             return customExecutorService!!
         }
