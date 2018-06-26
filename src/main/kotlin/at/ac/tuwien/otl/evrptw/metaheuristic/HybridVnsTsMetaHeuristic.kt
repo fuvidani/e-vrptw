@@ -130,17 +130,17 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
             val numberOfBatteryCapacityViolations =
                 lastSavedSolutions.stream().filter { it.fitnessValue.totalBatteryCapacityViolation > 0.0 }.toList().size
             val indexOfMultiplier = infeasibleSequenceCounter % FIBONACCI.size
-            if (numberOfCapacityViolations > 0 && ALPHA <= VIOLATION_FACTOR_MIN) {
+            if (numberOfCapacityViolations > 0 && ALPHA < VIOLATION_FACTOR_MIN) {
                 ALPHA = VIOLATION_FACTOR_MIN
             } else {
                 ALPHA += VIOLATION_FACTOR_INCREASE_RATE * numberOfCapacityViolations * FIBONACCI[indexOfMultiplier]
             }
-            if (numberOfTimeWindowViolations > 0 && BETA <= VIOLATION_FACTOR_MIN) {
+            if (numberOfTimeWindowViolations > 0 && BETA < VIOLATION_FACTOR_MIN) {
                 BETA = VIOLATION_FACTOR_MIN
             } else {
                 BETA += VIOLATION_FACTOR_INCREASE_RATE * numberOfTimeWindowViolations * FIBONACCI[indexOfMultiplier]
             }
-            if (numberOfBatteryCapacityViolations > 0 && GAMMA <= VIOLATION_FACTOR_MIN) {
+            if (numberOfBatteryCapacityViolations > 0 && GAMMA < VIOLATION_FACTOR_MIN) {
                 GAMMA = VIOLATION_FACTOR_MIN
             } else {
                 GAMMA += VIOLATION_FACTOR_INCREASE_RATE * numberOfBatteryCapacityViolations * FIBONACCI[indexOfMultiplier]
