@@ -28,9 +28,12 @@ class Constants private constructor() {
         const val VIOLATION_FACTOR_ABSOLUTE_MIN = 0.1
         const val VIOLATION_FACTOR_INCREASE_RATE = 2.0
         const val VIOLATION_FACTOR_DECREASE_RATE = 5.0
-        var ALPHA = ALPHA_DEFAULT
-        var BETA = BETA_DEFAULT
-        var GAMMA = GAMMA_DEFAULT
+        const val ALPHA_STARTING = 1.0
+        const val BETA_STARTING = 2.0
+        const val GAMMA_STARTING = 2.0
+        var ALPHA = ALPHA_STARTING
+        var BETA = BETA_STARTING
+        var GAMMA = GAMMA_STARTING
         val FIBONACCI = arrayOf(1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610)
     }
 }

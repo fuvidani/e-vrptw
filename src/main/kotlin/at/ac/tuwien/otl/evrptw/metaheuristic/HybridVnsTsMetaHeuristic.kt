@@ -5,12 +5,15 @@ import at.ac.tuwien.otl.evrptw.Main
 import at.ac.tuwien.otl.evrptw.dto.*
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.ALPHA_STARTING
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.BETA_STARTING
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.COOLING_FACTOR
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.FIBONACCI
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA_DEFAULT
+import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.GAMMA_STARTING
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.NO_CHANGE_THRESHOLD
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_DIST
 import at.ac.tuwien.otl.evrptw.metaheuristic.Constants.Companion.N_FEAS
@@ -98,9 +101,9 @@ class HybridVnsTsMetaHeuristic(private val logEnabled: Boolean = true) : IMetaHe
     }
 
     private fun resetParameters() {
-        ALPHA = ALPHA_DEFAULT
-        BETA = BETA_DEFAULT
-        GAMMA = GAMMA_DEFAULT
+        ALPHA = ALPHA_STARTING
+        BETA = BETA_STARTING
+        GAMMA = GAMMA_STARTING
         lastSavedSolutions.clear()
         thresholdCounter = 0
         infeasibleSequenceCounter = 0
