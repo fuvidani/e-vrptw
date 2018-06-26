@@ -163,7 +163,7 @@ public class EVRPTWInstance {
         return customers.get((int) node.id - (rechargingStations.size() + 1)).demand;
     }
 
-    private Node.Location getLocation(Node node) {
+    public Node.Location getLocation(Node node) {
         if(node.id == depot.id) return depot.location;
         else if(node.id > rechargingStations.size()) return customers
             .get((int) node.id - (rechargingStations.size() + 1)).location;
