@@ -2,9 +2,11 @@ package at.ac.tuwien.otl.evrptw
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWSolution
+import org.graphstream.graph.implementations.AbstractEdge
 import org.graphstream.graph.implementations.MultiGraph
 import org.graphstream.graph.implementations.MultiNode
 import org.graphstream.ui.graphicGraph.GraphicEdge
+import java.awt.Color
 import java.io.File
 
 /**
@@ -17,7 +19,7 @@ import java.io.File
  * @since 1.0.0
  */
 class EVRPTWSolutionVisualizer {
-    private var edgeIdCounter = 0
+    private var edgeIdCounter = 1000
 
     fun visualizeSolution(instance: EVRPTWInstance) {
         val solution = loadSolutionForInstance(instance)
@@ -40,7 +42,7 @@ class EVRPTWSolutionVisualizer {
             graph.addNode<MultiNode>(station.id.toString())
             val stationNode = graph.getNode<MultiNode>(station.id.toString())
             stationNode.setAttribute("xy", station.location.x, station.location.y)
-            stationNode.setAttribute("ui.label", station.name)
+//            stationNode.setAttribute("ui.label", station.name)
             stationNode.addAttribute("ui.style", "fill-color: #2E8B57;")
         }
 
@@ -49,13 +51,16 @@ class EVRPTWSolutionVisualizer {
             graph.addNode<MultiNode>(customer.id.toString())
             val customerNode = graph.getNode<MultiNode>(customer.id.toString())
             customerNode.setAttribute("xy", customer.location.x, customer.location.y)
-            customerNode.setAttribute("ui.label", customer.name)
+//            customerNode.setAttribute("ui.label", customer.name)
         }
 
         // plot routes
         for (route in solution.routes) {
+            val edgeColor = Color((Math.random() * 0x1000000).toInt())
             for (i in 0 until route.size - 1) {
                 graph.addEdge<GraphicEdge>((++edgeIdCounter).toString(), route[i].id, route[i + 1].id)
+                val edge = graph.getEdge<AbstractEdge>(edgeIdCounter.toString())
+                edge.setAttribute("ui.style", "size: 3px; fill-color: rgb(${edgeColor.red}, ${edgeColor.green}, ${edgeColor.blue});")
             }
         }
 
