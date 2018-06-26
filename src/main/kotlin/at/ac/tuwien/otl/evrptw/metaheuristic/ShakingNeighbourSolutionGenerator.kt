@@ -15,7 +15,7 @@ import java.util.Random
  */
 class ShakingNeighbourSolutionGenerator {
 
-    private val random = Random(123456)
+    private val random = Random(java.lang.Double.doubleToLongBits(Math.random()))
 
     fun generateRandomPoint(solution: EVRPTWSolution, neighbour: Int): EVRPTWSolution {
         val resultRoutes = solution.copyOfRoutes()
