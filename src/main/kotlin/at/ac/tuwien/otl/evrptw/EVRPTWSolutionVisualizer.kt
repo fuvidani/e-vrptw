@@ -29,12 +29,14 @@ class EVRPTWSolutionVisualizer {
     private fun plotSolution(instance: EVRPTWInstance, solution: EVRPTWSolution) {
         val graph = MultiGraph(instance.name)
         graph.addAttribute("ui.screenshot", "plots/${instance.name}.png")
+        graph.addAttribute("ui.quality")
+        graph.addAttribute("ui.antialias")
 
         // plot depot
         graph.addNode<MultiNode>(instance.depot.id.toString())
         val depotNode = graph.getNode<MultiNode>(instance.depot.id.toString())
         depotNode.setAttribute("xy", instance.getLocation(instance.depot).x, instance.getLocation(instance.depot).y)
-        depotNode.setAttribute("ui.label", instance.depot.id)
+//        depotNode.setAttribute("ui.label", instance.depot.id)
         depotNode.addAttribute("ui.style", "fill-color: red;")
 
         // plot recharge stations
