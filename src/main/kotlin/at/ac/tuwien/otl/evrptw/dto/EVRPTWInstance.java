@@ -17,6 +17,9 @@
 package at.ac.tuwien.otl.evrptw.dto;
 
 import at.ac.tuwien.otl.evrptw.dto.EVRPTWInstance.Node.TimeWindow;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -160,7 +163,7 @@ public class EVRPTWInstance {
         return customers.get((int) node.id - (rechargingStations.size() + 1)).demand;
     }
 
-    private Node.Location getLocation(Node node) {
+    public Node.Location getLocation(Node node) {
         if(node.id == depot.id) return depot.location;
         else if(node.id > rechargingStations.size()) return customers
             .get((int) node.id - (rechargingStations.size() + 1)).location;
@@ -186,6 +189,40 @@ public class EVRPTWInstance {
         return rechargingStations.get(node.id - 1).rechargingRate;
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+
+        if (!(o instanceof EVRPTWInstance)) return false;
+
+        final EVRPTWInstance that = (EVRPTWInstance) o;
+
+        return new EqualsBuilder()
+                .append(getName(), that.getName())
+                .append(getDepot(), that.getDepot())
+                .append(getCustomers(), that.getCustomers())
+                .append(getCustomerMap(), that.getCustomerMap())
+                .append(getRechargingStations(), that.getRechargingStations())
+                .append(getRechargingStationMap(), that.getRechargingStationMap())
+                .append(getNodes(), that.getNodes())
+                .append(getVehicleType(), that.getVehicleType())
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(getName())
+                .append(getDepot())
+                .append(getCustomers())
+                .append(getCustomerMap())
+                .append(getRechargingStations())
+                .append(getRechargingStationMap())
+                .append(getNodes())
+                .append(getVehicleType())
+                .toHashCode();
+    }
+
     public static class Node {
         final int id;
 
@@ -195,6 +232,26 @@ public class EVRPTWInstance {
 
         Node(int id) {
             this.id = id;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof Node)) return false;
+
+            final Node node = (Node) o;
+
+            return new EqualsBuilder()
+                    .append(getId(), node.getId())
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .append(getId())
+                    .toHashCode();
         }
 
         public static class Location {
@@ -212,6 +269,28 @@ public class EVRPTWInstance {
             public double getY() {
                 return y;
             }
+
+            @Override
+            public boolean equals(final Object o) {
+                if (this == o) return true;
+
+                if (!(o instanceof Location)) return false;
+
+                final Location location = (Location) o;
+
+                return new EqualsBuilder()
+                        .append(getX(), location.getX())
+                        .append(getY(), location.getY())
+                        .isEquals();
+            }
+
+            @Override
+            public int hashCode() {
+                return new HashCodeBuilder(17, 37)
+                        .append(getX())
+                        .append(getY())
+                        .toHashCode();
+            }
         }
 
         public static class TimeWindow {
@@ -228,6 +307,28 @@ public class EVRPTWInstance {
 
             public double getEnd() {
                 return end;
+            }
+
+            @Override
+            public boolean equals(final Object o) {
+                if (this == o) return true;
+
+                if (!(o instanceof TimeWindow)) return false;
+
+                final TimeWindow that = (TimeWindow) o;
+
+                return new EqualsBuilder()
+                        .append(getStart(), that.getStart())
+                        .append(getEnd(), that.getEnd())
+                        .isEquals();
+            }
+
+            @Override
+            public int hashCode() {
+                return new HashCodeBuilder(17, 37)
+                        .append(getStart())
+                        .append(getEnd())
+                        .toHashCode();
             }
         }
     }
@@ -271,6 +372,36 @@ public class EVRPTWInstance {
         }
 
         @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof Customer)) return false;
+
+            final Customer customer = (Customer) o;
+
+            return new EqualsBuilder()
+                    .appendSuper(super.equals(o))
+                    .append(getDemand(), customer.getDemand())
+                    .append(getServiceTime(), customer.getServiceTime())
+                    .append(getName(), customer.getName())
+                    .append(getLocation(), customer.getLocation())
+                    .append(getTimeWindow(), customer.getTimeWindow())
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .appendSuper(super.hashCode())
+                    .append(getName())
+                    .append(getLocation())
+                    .append(getDemand())
+                    .append(getTimeWindow())
+                    .append(getServiceTime())
+                    .toHashCode();
+        }
+
+        @Override
         public String toString() {
             return name;
         }
@@ -298,6 +429,32 @@ public class EVRPTWInstance {
 
         public TimeWindow getTimeWindow() {
             return timeWindow;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof Depot)) return false;
+
+            final Depot depot = (Depot) o;
+
+            return new EqualsBuilder()
+                    .appendSuper(super.equals(o))
+                    .append(getName(), depot.getName())
+                    .append(getLocation(), depot.getLocation())
+                    .append(getTimeWindow(), depot.getTimeWindow())
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .appendSuper(super.hashCode())
+                    .append(getName())
+                    .append(getLocation())
+                    .append(getTimeWindow())
+                    .toHashCode();
         }
 
         @Override
@@ -338,6 +495,34 @@ public class EVRPTWInstance {
         }
 
         @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof RechargingStation)) return false;
+
+            final RechargingStation that = (RechargingStation) o;
+
+            return new EqualsBuilder()
+                    .appendSuper(super.equals(o))
+                    .append(getRechargingRate(), that.getRechargingRate())
+                    .append(getName(), that.getName())
+                    .append(getLocation(), that.getLocation())
+                    .append(getTimeWindow(), that.getTimeWindow())
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .appendSuper(super.hashCode())
+                    .append(getName())
+                    .append(getLocation())
+                    .append(getTimeWindow())
+                    .append(getRechargingRate())
+                    .toHashCode();
+        }
+
+        @Override
         public String toString() {
             return name;
         }
@@ -350,6 +535,28 @@ public class EVRPTWInstance {
         private VehicleType(int id, String name) {
             this.id = id;
             this.name = name;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof VehicleType)) return false;
+
+            final VehicleType that = (VehicleType) o;
+
+            return new EqualsBuilder()
+                    .append(id, that.id)
+                    .append(name, that.name)
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .append(id)
+                    .append(name)
+                    .toHashCode();
         }
     }
 
@@ -380,6 +587,34 @@ public class EVRPTWInstance {
 
         public double getFixedCosts() {
             return fixedCosts;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof BEVehicleType)) return false;
+
+            final BEVehicleType that = (BEVehicleType) o;
+
+            return new EqualsBuilder()
+                    .appendSuper(super.equals(o))
+                    .append(getEnergyCapacity(), that.getEnergyCapacity())
+                    .append(getEnergyConsumption(), that.getEnergyConsumption())
+                    .append(getLoadCapacity(), that.getLoadCapacity())
+                    .append(getFixedCosts(), that.getFixedCosts())
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .appendSuper(super.hashCode())
+                    .append(getEnergyCapacity())
+                    .append(getEnergyConsumption())
+                    .append(getLoadCapacity())
+                    .append(getFixedCosts())
+                    .toHashCode();
         }
     }
 }
