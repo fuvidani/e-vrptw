@@ -17,7 +17,7 @@ apply plugin: 'kotlin-allopen'
 apply plugin: 'application'
 
 group ='at.ac.tuwien.otl'
-version = '1.0-SNAPSHOT'
+version = '1.0.0'
 mainClassName = 'at.ac.tuwien.otl.Main'
 
 repositories {
